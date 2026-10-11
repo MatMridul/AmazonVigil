@@ -13,8 +13,8 @@
 | :---: | :--- | :---: | :--- |
 | **DR-01** | Visual Tone & Crisis Psychology | **LOCKED** | High-End Architectural Ambient; "The Active Protector" Model |
 | **DR-02** | Hero Object & Family Privacy Model | **LOCKED** | Sanctuary State Capsule; Multi-Entity Zero-Trace Arrival |
-| **DR-03** | 10-Foot Living Room Display (Fire TV) | **DISCUSSING** | In Review (Ambient PIP vs. Tiered Interruption) |
-| **DR-04** | Wearable Interface & Haptics (Bee) | **QUEUED** | Upcoming |
+| **DR-03** | 10-Foot Living Room Display (Fire TV) | **LOCKED** | Combinatorial Matrix; Headless Daemon; Bundled Offline Audio Library |
+| **DR-04** | Wearable Interface & Haptics (Bee) | **DISCUSSING** | In Review (Tactile Language & Glanceable Micro-UI) |
 | **DR-05** | Acoustic & Voice Persona (Alexa+) | **QUEUED** | Upcoming |
 
 ---
@@ -53,3 +53,30 @@ Smart home security apps often become accidental domestic surveillance tools—l
   $$\text{Zero-Trace Entry:} \quad \forall p \in \text{Scene}, \quad \text{Identity}(p) \in \text{Household\_Whitelist}$$
   * If all individuals in the camera threshold are verified family/friends, the door unlatches silently with **zero trace** on shared screens.
   * If an unverified individual is detected alongside an authorized resident ($\exists p \in \text{Scene} \text{ where } \text{Identity}(p) \notin \text{Whitelist}$), the system immediately engages the **Tailgating / Piggyback Protocol** to protect against forced coercion.
+
+---
+
+## DR-03: 10-Foot Living Room Display & Headless Deterrence (Fire TV / Vega OS)
+
+### 1. Context & Problem
+Traditional smart TV apps fail as security systems because users must manually open them from an app drawer. Moreover, sudden loud bluffs on a TV can cause resident panic attacks, stream buffering can cause failure, and Bluetooth headphones can swallow the deterrent audio.
+
+### 2. Locked Architecture: Combinatorial State Matrix & Headless Daemon
+The Fire TV client runs as a **headless background daemon** reacting to the state tensor:
+$$\mathbf{FireTV}_{\text{Response}} = \mathbf{Power}_{\text{TV}} \times \mathbf{Playback}_{\text{TV}} \times \mathbf{Subject}_{\text{Class}}$$
+
+#### Combinatorial Behavior Table
+1. **Watching Movie + Verified Household:** Zero interruption. Optional 3s subtle toast: *"Welcome home, Jordan"*, auto-clearing.
+2. **Watching Movie + Benign Visitor (Courier):** Ambient Heads-Up PIP slides into top-right corner for 8s; movie continues playing uninterrupted.
+3. **Watching Movie + Hostile Intruder:** Media pauses; smooth full-screen transition to Ring live feed with "Active Protector" guidance card.
+4. **TV Standby (Screen Off) + Verified Household:** Complete silence. Screen stays black and off (preserves sleep and zero-trace).
+5. **TV Standby (Screen Off) + Benign Visitor:** Screen stays black and off (preserves energy; logged silently).
+6. **TV Standby (Screen Off) + Hostile Intruder:** **The HDMI-CEC Ambush.** Wakes TV via HDMI-CEC, blasting local "Home Alone" deterrent audio.
+7. **TV Cold / Unplugged at Wall:** **Actuator Redundancy Fallback (DMP F1).** Automatically reroutes all deterrent audio to the local Echo smart speaker.
+
+### 3. Hardened Engineering Countermeasures
+* **Offline-First Bundled Acoustic Library:** The deterrence audio assets (multi-person conversation, footsteps, aggressive dog barks) are **packaged locally inside the app bundle**. Zero dependency on cloud streaming, YouTube, or external CDNs.
+* **Ramping Decibel Curve:** Deterrent audio begins with a 3-second natural ramp (conversational murmur at 40% volume, escalating to footsteps and barking at 75%) to avoid triggering cardiac panic in residents sleeping on the couch.
+* **Audio Sink Force-Override:** Issues `FORCE_AUDIO_SPEAKER` and unbinds active Bluetooth headsets upon Level 2 threat escalation, forcing audio to the primary TV speakers.
+* **One-Touch Auto-Resume:** Pressing any remote button (or 15s post-threat clearance) immediately resumes media playback from the exact paused timestamp.
+* **Echo Speaker Boot-Bridge:** While Fire TV negotiates HDMI-CEC power-on (~3-4s), the hallway Echo Dot emits low-latency footsteps within 150ms to bridge the gap.
