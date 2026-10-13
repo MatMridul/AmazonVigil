@@ -163,3 +163,6 @@ flowchart TD
   - Compile structured friction logs (task, expected, actual, severity, workaround, Amazon recommendation) claiming the **10% judging bonus**.
 - [ ] **Task 9.3: Demo Video Script & Storyboard**
   - Prepare a 2.5-minute demo video script covering: (1) The Problem, (2) The 4-Device Architecture, (3) Live Scenario Demos, (4) Sensor Tamper Resilience.
+- [ ] **Task 9.4: Devpost Submission Dossier & Tagged Release `v1.0.0`**
+  - Prepare Devpost written narrative (Inspiration, Architecture, Challenges, Accomplishments).
+  - Create tagged release `v1.0.0` on `main` branch with MIT License and zero secrets.
