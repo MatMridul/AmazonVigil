@@ -15,7 +15,7 @@ Vigil+ unifies four Amazon device ecosystems and AWS cloud intelligence into a s
 ├───────────────────┼───────────────────────────────────────────┼────────────────────────────────────────────┤
 │ **Alexa+**        │ MCP Spec 2025-11-25+ (Streamable HTTP)    │ Central Incident Commander & FastMCP Hub   │
 │ **Ring**          │ `AmazonAppDev/ring-api-helloworld`        │ Perimeter Sentry (Motion, WebRTC, Audio)   │
-│ **Bee**           │ `docs.bee.computer` / `bee-cli` / Skill   │ Bio-Grounding (Sleep/Awake, Haptic Pulse)  │
+│ **Bee**           │ `docs.bee.computer` / `bee-cli` / Skill   │ Bio-Grounding (Sleep/Awake Context via Voice & Motion)│
 │ **Fire TV**       │ `AmazonAppDev/react-native-multi-tv-app`  │ Active Deterrence Player (Vega/Web Player) │
 │ **AWS Cloud**     │ Amazon Bedrock (Claude 3.5 Sonnet via SDK)│ Multimodal Threat Scorer & 911 CAD Engine  │
 │ **Dev Tooling**   │ `@amazon-devices/amazon-devices-builder`  │ ADBT MCP Server & Agent Skills for Kiro    │
@@ -33,7 +33,7 @@ Vigil+ unifies four Amazon device ecosystems and AWS cloud intelligence into a s
 * **Exposed Tool Contracts:**
   * `audit_perimeter_event(event_payload: dict) -> dict`
   * `query_wearer_state(user_id: str) -> dict`
-  * `trigger_wearer_haptic(user_id: str, intensity: str, duration_sec: int) -> bool`
+  * `trigger_tactical_wake(user_id: str, channel: str) -> dict`
   * `trigger_firetv_deterrence(mode: str, volume_percent: int) -> dict`
   * `format_emergency_cad_packet(incident_id: str) -> dict`
 
@@ -41,33 +41,33 @@ Vigil+ unifies four Amazon device ecosystems and AWS cloud intelligence into a s
 * **Reference Starter:** [`AmazonAppDev/ring-api-helloworld`](https://github.com/AmazonAppDev/ring-api-helloworld) (TypeScript / React).
 * **Key Capabilities Scoped:**
   * **OAuth Token Flow:** Auth flow via Ring Developer Playground.
-  * **Webhook Subscriptions:** Receiving real-time event triggers (`motion_detected`, `ding`).
-  * **WebRTC Live Streaming:** Low-latency video and audio stream initialization.
+  * **Webhook Subscriptions:** Receiving real-time event triggers (`motion_detected`, `ding`) over SSE.
+  * **WebRTC Live Streaming:** Low-latency video and audio stream initialization via WHEP.
+  * **VideoProcessor Plugin Architecture (`lib/video-processors/`):** Client-side frame analysis interface (`process(frame: ImageData)`) powering our Optical Integrity Auditor ($\Phi_V$) to detect lens spray-paint and laser blinding directly on live frames.
   * **Device Health:** Battery levels, Wi-Fi RSSI, camera online/offline status.
-  * **Ring MCP Server:** Official tool surface for Ring device queries.
 
-### 2.3 Bee Wearable AI (Bio-Grounding & Haptics)
+### 2.3 Bee Wearable AI (Bio-Grounding & Context)
 * **Official Docs:** [`docs.bee.computer`](https://docs.bee.computer)
 * **Reference Starter:** [`github.com/bee-computer/bee-skill`](https://github.com/bee-computer/bee-skill)
 * **Key Capabilities Scoped:**
-  * **`bee-cli`:** Local CLI interface that exports raw context, conversations, and biometric metadata.
-  * **Bee MCP Server:** The Bee CLI functions as a local MCP server, providing structured tool calling to read local wearable state.
-  * **Circadian & Physiological Telemetry:**
-    * `is_awake: bool` (Derived from accelerometer and resting heart rate).
-    * `heart_rate: int` (Used to detect duress/tachycardia $>140\text{ BPM}$).
-    * `on_wrist: bool` (Used for sensor integrity fail-safe D1).
-  * **Haptic Actuation:** Tactile vibration alerting to wake the resident without alerting the intruder outside.
+  * **`bee-cli`:** Local CLI interface that exports raw context, conversations, and temporal metadata.
+  * **Real-Time Context (`bee now --json`):** Reads the last 10 hours of ambient audio utterances to calculate speech recency.
+  * **Daily Summary (`bee today --context`):** Reads daily notes, todos, and calendar facts.
+  * **Dual-Tier Hardware UX Contract:**
+    * **Tier A (Bee Pioneer Clip):** Sleep inferred from conversational silence (>1h) + accelerometer stillness. Zero fake CLI vibration dependencies.
+    * **Tier B (Apple Watch via Bee App):** HealthKit optical PPG heart rate and sleep stages.
+  * **Wake Actuation Route:** Interior tactical wake is executed by the bedroom **Echo Dot via low-frequency whisper SSML** and the smartphone **Nightstand Critical Alert**.
 
-### 2.4 Fire TV (Living Room Deception & Display)
+### 2.4 Fire TV & Echo Boot-Bridge (Living Room Deterrence)
 * **Reference Starter:** [`AmazonAppDev/react-native-multi-tv-app-sample`](https://github.com/AmazonAppDev/react-native-multi-tv-app-sample)
-* **Secondary Reference:** `vega-video-sample` (W3C media player with focus management).
 * **Key Capabilities Scoped:**
   * **Cross-Platform Target:** Builds for **Vega OS, Android TV, AND Web** from one codebase.
   * **The "Home Alone" Deterrence Player:**
     * When Level 2 threat is triggered, Alexa+ signals the TV via WebSocket/MQTT.
-    * Fire TV turns on (via HDMI-CEC or web simulation) and plays simulated occupancy audio/video (loud conversation, dinner party noises, barking dog).
-  * **Picture-in-Picture (PIP) & Fullscreen Stream:**
-    * When the resident wakes up or requests camera status, Fire TV smoothly overlays the live WebRTC stream from the Ring camera.
+    * **The Echo Boot-Bridge:** Hallway Echo fires 150ms footstep audio while Fire TV negotiates 3-4s HDMI-CEC screen power-on.
+    * Fire TV powers on and plays **offline bundled `.aac` audio** (loud conversation, barking German Shepherd, movement shadows).
+  * **Heads-Up System Toast & Fullscreen Stream:**
+    * Uses native Android / Vega system notifications for couriers, and foreground intents for active Level 2/3 breach video feeds.
 
 ### 2.5 AWS Cloud & Bedrock Intelligence (AWS Builder Challenge)
 * **Runtime Service:** Amazon Bedrock (`anthropic.claude-3-5-sonnet-20241022` via `boto3`).

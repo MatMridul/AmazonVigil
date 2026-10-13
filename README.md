@@ -12,14 +12,14 @@
 
 ## What Vigil+ Is
 
-Vigil+ is a multi-device home defense and deterrence mesh that connects the front door, the living room, personal wearables, and the cloud into an ambient, coordinated security response.
+Vigil+ is an autonomous, 100% software home defense and deterrence mesh that connects the front door, the living room, personal wearables, and the cloud into an ambient, coordinated security response.
 
 Instead of sending passive smartphone notifications that get ignored when residents are asleep, Vigil+:
-1. **Perimeter Awareness (Ring):** Analyzes motion, camera imagery, and outdoor audio.
-2. **Human Bio-Grounding (Bee Wearable):** Assesses whether the resident is awake, in deep sleep, away, or under acute duress.
-3. **Ambient Incident Commander (Alexa+ via FastMCP):** Evaluates multi-modal threat intent with **Amazon Bedrock (Claude 3.5 Sonnet)**.
-4. **Active Environmental Deterrence (Fire TV):** Deploys acoustic and visual deception (simulated occupancy, barking dogs, dynamic lights) before an intruder attempts breach.
-5. **Fail-Safe Emergency Dispatch:** Prepares structured, verified 911 Computer-Aided Dispatch (CAD) evidentiary manifests when critical threats occur while the resident is vulnerable.
+1. **Perimeter Awareness (Ring):** Ingests motion, WebRTC camera video, and audio; runs client-side `VideoProcessor` plugins to detect lens tampering and spray-paint sabotage.
+2. **Human Bio-Grounding (Bee Wearable):** Assesses whether the resident is awake or in deep sleep via conversation recency (`bee now`) and accelerometer stillness.
+3. **Ambient Incident Commander (Alexa+ via FastMCP):** Acts as the central coordinator, orchestrating low-latency local edge reflexes (<50ms) and cognitive multimodal threat analysis via **Amazon Bedrock (Claude 3.5 Sonnet)**.
+4. **Active Psychological Deterrence (Fire TV & Echo Boot-Bridge):** Deploys the "Home Alone" bluff—using hallway Echo speakers for instant 150ms footstep audio while Fire TV wakes over HDMI-CEC to blast high-decibel barking dogs, dialogue, and movement shadows before an intruder breaches the entryway.
+5. **Fail-Safe Digital CAD Dispatch:** Stages structured, NENA-compliant Digital Computer-Aided Dispatch (CAD) manifests (RapidSOS format) with cryptographic hashes for 1-tap resident transmission.
 
 ---
 
@@ -36,27 +36,28 @@ Instead of sending passive smartphone notifications that get ignored when reside
 
 ```
 ┌─────────────────────────────────┐     ┌─────────────────────────────────┐
-│       Perimeter Ingest (Ring)   │     │    Bio-Context (Bee Wearable)   │
-│       • PIR Motion Detection    │     │    • Sleep / Circadian State    │
-│       • Camera Pose & Face      │     │    • Heart Rate / Distress      │
-│       • Ambient Audio Stream    │     │    • Haptic Wake-Up Actuator    │
+│     Perimeter Ingest (Ring)     │     │    Bio-Context (Bee Wearable)   │
+│     • PIR Motion Detection      │     │    • Conversation Recency (now) │
+│     • WebRTC Live Video Stream  │     │    • Locomotion / Stillness     │
+│     • VideoProcessor Plugin (Φ) │     │    • Sleep Context via bee CLI  │
 └────────────────┬────────────────┘     └────────────────┬────────────────┘
                  │                                       │
                  └───────────────────┬───────────────────┘
                                      ▼
                    ┌───────────────────────────────────┐
                    │    Alexa+ Core FastMCP Server     │
+                   │    • System 1: Local Reflex (<50ms)│
+                   │    • System 2: Bedrock Multimodal │
                    │    • Sensor Integrity Auditor (Φ) │
-                   │    • Bedrock Multi-Modal Scorer   │
-                   │    • Deterministic State Machine  │
                    └─────────────────┬─────────────────┘
                                      │
          ┌───────────────────────────┼───────────────────────────┐
          ▼                           ▼                           ▼
   [Level 0: Safe]             [Level 1: Ambiguous]        [Level 2/3: Critical]
-  • Silent Door Unlock        • Alexa Voice Check         • Bee Haptic Pulse (Wake)
-  • Suppressed Alerts         • Respect Sleep State       • Fire TV Deterrence ("Home Alone")
-                              • Fire TV PIP Camera Feed   • Structured 911 CAD Dispatch
+  • Verified Arrival Clearance• Alexa Voice Check         • Bedroom Whisper & Nightstand Hum
+  • Muted Perimeter Alerts    • Respect Sleep State       • Echo Boot-Bridge (150ms Footsteps)
+  • Zero-Trace Family Entry   • Fire TV System Toast/PIP  • Fire TV "Home Alone" Deterrence
+                              • Ring Doorbell Greeting    • NENA 911 Digital CAD Staged
 ```
 
 ---

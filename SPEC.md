@@ -20,11 +20,11 @@ Current smart home security suffers from a **fundamental decoupling**:
 4. **The Living Room Screen (Fire TV)** sits dark and idle while security events unfold outside the door.
 
 **Vigil+** bridges this gap into an **autonomous multi-device perimeter defense and deterrence mesh**:
-* **Ring** acts as the high-resolution sensory perimeter (Motion, Vision, Audio).
-* **Bee** grounds the system in human state (detecting whether the resident is awake, in deep sleep, or under physiological duress).
-* **Alexa+** acts as the central Incident Commander via a self-hosted **Model Context Protocol (MCP)** server, evaluating multi-modal threats with **Amazon Bedrock**.
-* **Fire TV & Smart Actuators** deploy active psychological deterrence (the "Home Alone" bluff: simulated living room occupancy, dynamic lighting, acoustic deterrence) before intruders can breach the door.
-* **Emergency Dispatch** compiles verified, multi-sensor Computer-Aided Dispatch (CAD) manifests for emergency services if a high-severity threat persists while the resident is vulnerable.
+* **Ring** acts as the high-resolution sensory perimeter (Motion, Vision, Audio) with client-side frame processing to detect physical lens tampering ($\Phi_V$).
+* **Bee** grounds the system in human context (detecting whether the resident is awake or in deep sleep via conversation recency `bee now` and accelerometer stillness).
+* **Alexa+** acts as the central Incident Commander via a self-hosted **Model Context Protocol (MCP)** server, coordinating **System 1 local edge reflexes (<50ms)** with **System 2 cognitive multimodal reasoning (Amazon Bedrock)**.
+* **Fire TV & Echo Boot-Bridge** deploy active psychological deterrence (the "Home Alone" bluff: simulated living room occupancy, dynamic lighting, high-decibel acoustic deterrence) before intruders can breach the entryway.
+* **Emergency Dispatch** compiles verified, NENA-compliant Digital Computer-Aided Dispatch (CAD) manifests (RapidSOS format) staged for 1-tap resident transmission when critical threats persist.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -37,25 +37,31 @@ Current smart home security suffers from a **fundamental decoupling**:
 │                        ALEXA+ INCIDENT COMMANDER (FastMCP Server)                      │
 │                                                                                        │
 │   ┌───────────────────────────┐   ┌──────────────────────────┐   ┌─────────────────┐   │
-│   │ Sensor Integrity Auditor  ├──►│ Bedrock Multimodal Scorer├──►│  Deterministic  │   │
-│   │ (Degraded Mode Fallbacks) │   │ (Threat Intent & Level)  │   │  State Machine  │   │
-│   └───────────────────────────┘   └──────────────────────────┘   └────────┬────────┘   │
+│   │ Sensor Integrity Auditor  ├──►│ System 1: Local Reflexes ├──►│  Deterministic  │   │
+│   │ (Degraded Mode Fallbacks) │   │ (Zero-Latency Rule Table)│   │  State Machine  │   │
+│   └───────────────────────────┘   └─────────────┬────────────┘   └────────┬────────┘   │
+│                                                 ▼                         │            │
+│                                   ┌──────────────────────────┐            │            │
+│                                   │ System 2: Bedrock Scorer │◄───────────┘            │
+│                                   │ (Claude 3.5 Sonnet / CAD)│                         │
+│                                   └──────────────────────────┘                         │
 └───────────────────────────────────────────────────────────────────────────┼────────────┘
                                                                             │
                                    ┌────────────────────────────────────────┼────────────────────────────────────────┐
                                    ▼                                        ▼                                        ▼
                              [LEVEL 0: SAFE]                      [LEVEL 1: AMBIGUOUS]                      [LEVEL 2/3: CRITICAL]
-                             • Silent Auto-Unlock                 • Query Host gently                       • High-Urgency Escalation
-                             • Audit Log                          • Respect Sleep State                     • Bio-Grounding Wake-Up
-                                                                  • Ring 2-Way Intercom
+                             • Silent Arrival Clearance           • Query Host gently                       • High-Urgency Escalation
+                             • Audit Log                          • Respect Sleep State                     • Dual-Brain Deterrence Trigger
+                             • Disarm Exterior Alert              • Ring Doorbell Intercom
                                                                                                                      │
                                                     ┌────────────────────────────────────────────────────────────────┴──────────────────┐
                                                     ▼                                                                                   ▼
                                             [Host is Awake]                                                                     [Host is Asleep]
-                                            • Alexa Voice Alert                                                                 • Bee Intense Haptic Pulse
-                                            • Fire TV PIP Camera Stream                                                         • Fire TV Acoustic Deterrent
-                                            • Manual Resident Control                                                           • Emergency Lighting Strobe
-                                                                                                                                • Bedrock 911 CAD Dispatch
+                                            • Alexa Voice Alert                                                                 • Low-Frequency Bedroom Whisper
+                                            • Fire TV System Toast / PIP                                                        • Phone Nightstand Critical Alert
+                                            • Manual Resident Control                                                           • Echo Boot-Bridge (150ms Footsteps)
+                                                                                                                                • Fire TV "Home Alone" Bluff
+                                                                                                                                • NENA Digital CAD Staged (1-Tap)
 ```
 
 ---
@@ -86,10 +92,10 @@ $$\vec{\Phi} = \begin{bmatrix} \Phi_M \\ \Phi_V \\ \Phi_A \end{bmatrix}, \quad \
 * $S_{\text{env}}$: Environmental false trigger (stray animal, windblown foliage, headlight sweep).
 
 ### 2.4 Host State ($\mathbf{Host}_{\text{State}}$ via Bee Wearable)
-* $H_{\text{awake}}$: Home and awake (active HRV, physical movement, ambient Alexa interaction).
-* $H_{\text{asleep}}$: Home and in deep/circadian sleep (low baseline HR, motionless).
+* $H_{\text{awake}}$: Home and awake (active conversational speech in `bee now`, physical movement).
+* $H_{\text{asleep}}$: Home and in deep/circadian sleep (temporal speech silence $>1\text{h}$ in `bee now` + accelerometer stillness).
 * $H_{\text{away}}$: Away from home (geofence disconnected, BLE beacon out of range).
-* $H_{\text{distress}}$: In acute duress (sudden tachycardia spike $>140\text{ BPM}$ at entryway; potential coercion).
+* $H_{\text{distress}}$: In acute duress (spoken duress codeword or Tier B Apple Watch tachycardia spike $>140\text{ BPM}$).
 
 ---
 
@@ -97,16 +103,16 @@ $$\vec{\Phi} = \begin{bmatrix} \Phi_M \\ \Phi_V \\ \Phi_A \end{bmatrix}, \quad \
 
 | ID | Scenario | Ingest Triad ($M, V, A$) | Subject | Host State | Severity | Coordinated Mesh Response |
 | :---: | :--- | :--- | :---: | :---: | :---: | :--- |
-| **01** | **Late-Night Family Arrival** | $M=1$<br>$V=V_{\text{face\_known}}$<br>$A=A_{\text{voice\_known}}$ | $S_{\text{family}}$ | $H_{\text{asleep}}$ | **L0** | • **Ring:** Silent deadbolt unlock.<br>• **Bee & Fire TV:** Zero disruption.<br>• **Alexa+:** Silent event log. |
-| **02** | **Midnight Stealth Delivery** | $M=1$<br>$V=V_{\text{package}} + V_{\text{face\_unv}}$<br>$A=A_{\text{ambient\_quiet}}$ | $S_{\text{benign}}$ | $H_{\text{asleep}}$ | **L1** | • **Ring:** Video recorded.<br>• **Bee:** Suppressed (preserves sleep).<br>• **Alexa+:** Enqueues morning notification. |
-| **03** | **Daytime Doorbell / Visitor** | $M=1$<br>$V=V_{\text{face\_unv}}$<br>$A=A_{\text{speech\_benign}}$ | $S_{\text{benign}}$ | $H_{\text{awake}}$ | **L1** | • **Alexa+:** Chimes: *"Visitor at the front door."*<br>• **Fire TV:** Picture-in-picture stream overlay.<br>• **Bee:** Gentle wrist tap. |
+| **01** | **Late-Night Family Arrival** | $M=1$<br>$V=V_{\text{face\_known}}$<br>$A=A_{\text{voice\_known}}$ | $S_{\text{family}}$ | $H_{\text{asleep}}$ | **L0** | • **Ring:** Silent arrival clearance; perimeter alerts disarmed.<br>• **Bee & Fire TV:** Zero disruption.<br>• **Alexa+:** Silent event log. |
+| **02** | **Midnight Stealth Delivery** | $M=1$<br>$V=V_{\text{package}} + V_{\text{face\_unv}}$<br>$A=A_{\text{ambient\_quiet}}$ | $S_{\text{benign}}$ | $H_{\text{asleep}}$ | **L1** | • **Ring:** Video recorded.<br>• **Bedroom Echo:** Suppressed (preserves sleep).<br>• **Alexa+:** Enqueues morning notification. |
+| **03** | **Daytime Doorbell / Visitor** | $M=1$<br>$V=V_{\text{face\_unv}}$<br>$A=A_{\text{speech\_benign}}$ | $S_{\text{benign}}$ | $H_{\text{awake}}$ | **L1** | • **Alexa+:** Chimes: *"Visitor at the front door."*<br>• **Fire TV:** Heads-up system notification / PIP stream.<br>• **Phone:** Low-priority push notification. |
 | **04** | **Curious Neighbor (Host Away)** | $M=1$<br>$V=V_{\text{face\_unv}}$<br>$A=A_{\text{speech\_benign}}$ | $S_{\text{benign}}$ | $H_{\text{away}}$ | **L1** | • **Ring:** Automated voice concierge: *"Host is away, please leave a message."*<br>• **Mobile:** Summary alert pushed. |
 | **05** | **Environmental Anomaly** | $M=1$<br>$V=V_{\text{animal}}$<br>$A=A_{\text{ambient\_quiet}}$ | $S_{\text{env}}$ | $H_{\text{asleep}}$ | **L0** | • **Engine:** Vision model filters animal.<br>• **All Devices:** Pure silent drop. Zero false alarm penalty. |
-| **06** | **Covert Lock Picking (Prowler)** | $M=1$<br>$V=V_{\text{masked}}$<br>$A=A_{\text{breach\_noise}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ | **L2** | • **Bee:** Continuous haptic vibration until awake.<br>• **Fire TV:** **Deterrence Trigger** — activates simulated indoor noise (loud conversation/barking dog).<br>• **Smart Home:** Exterior floodlight on.<br>• **Alexa+:** Whispers status to host upon waking. |
-| **07** | **Violent Forced Entry / Invasion** | $M=1$<br>$V=V_{\text{weapon}}$<br>$A=A_{\text{speech\_hostile}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ / $H_{\text{awake}}$ | **L3** | • **Ring:** Siren triggered.<br>• **Smart Lights:** Interior/exterior strobe.<br>• **Fire TV:** Full-screen Ring camera live feed.<br>• **Alexa+:** Broadcasts: *"Emergency services contacted."*<br>• **AWS Bedrock:** Compiles 911 CAD dispatch manifest. |
-| **08** | **Lens Tamper Breach** | $M=1$<br>$V=V_{\text{tampered}}$<br>$A=A_{\text{breach\_noise}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ | **L2** | • **Engine:** Flags optical tamper fault ($\Phi_V=0$).<br>• **Bee:** Emergency haptic pulse.<br>• **Fire TV:** Instant acoustic deterrence.<br>• **Alexa+:** Alerts host of compromised door sensor. |
-| **09** | **Loitering / Perimeter Casing** | $M=1$<br>$V=V_{\text{face\_unv}}$ ($>90\text{s}$)<br>$A=A_{\text{ambient\_quiet}}$ | $S_{\text{suspicious}}$ | $H_{\text{awake}}$ | **L1** | • **Ring:** Activates courtesy spotlight.<br>• **Alexa+:** Asks: *"Individual lingering at front gate. View feed?"*<br>• **Bee:** Subtle vibration alert. |
-| **10** | **Host Duress / Armed Coercion** | $M=1$<br>$V=V_{\text{face\_known}} + V_{\text{weapon}}$<br>$A=A_{\text{speech\_hostile}}$ | $S_{\text{hostile}}$ | $H_{\text{distress}}$ (Tachycardia spike) | **L3** | • **Ring:** Normal door unlock (preserves host life).<br>• **Silent Escalation:** All audible sirens suppressed.<br>• **Emergency:** Silent 911 CAD alert dispatched with live telemetry. |
+| **06** | **Covert Entry Breach (Prowler)** | $M=1$<br>$V=V_{\text{masked}}$<br>$A=A_{\text{breach\_noise}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ | **L2** | • **Alexa+:** Low-frequency whispered alert at bedside.<br>• **Echo Boot-Bridge:** Hallway Echo fires 150ms footsteps.<br>• **Fire TV:** Deterrent trigger — simulated conversation & dog barking.<br>• **Smart Home:** Exterior floodlight on.<br>• **Ring:** Outdoor speaker: *"Hold on, coming to the door!"* |
+| **07** | **Violent Forced Entry / Invasion** | $M=1$<br>$V=V_{\text{weapon}}$<br>$A=A_{\text{speech\_hostile}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ / $H_{\text{awake}}$ | **L3** | • **Ring:** Siren triggered.<br>• **Smart Lights:** Interior/exterior strobe.<br>• **Fire TV:** Full-screen Ring camera live feed takeover.<br>• **Alexa+:** Broadcasts: *"Emergency services alerted."*<br>• **AWS Bedrock:** Compiles NENA Digital CAD manifest. |
+| **08** | **Lens Tamper Breach** | $M=1$<br>$V=V_{\text{tampered}}$<br>$A=A_{\text{breach\_noise}}$ | $S_{\text{hostile}}$ | $H_{\text{asleep}}$ | **L2** | • **Engine:** Flags optical tamper fault ($\Phi_V=0$).<br>• **Alexa+:** Bedside whispered alert of compromised sensor.<br>• **Echo Boot-Bridge & Fire TV:** Instant acoustic deterrence.<br>• **Phone:** Nightstand alert card displayed. |
+| **09** | **Loitering / Perimeter Casing** | $M=1$<br>$V=V_{\text{face\_unv}}$ ($>90\text{s}$)<br>$A=A_{\text{ambient\_quiet}}$ | $S_{\text{suspicious}}$ | $H_{\text{awake}}$ | **L1** | • **Ring:** Activates courtesy spotlight.<br>• **Alexa+:** Asks: *"Individual lingering at front gate. View feed?"*<br>• **Phone:** Notification card. |
+| **10** | **Host Duress / Armed Coercion** | $M=1$<br>$V=V_{\text{face\_known}} + V_{\text{weapon}}$<br>$A=A_{\text{speech\_hostile}}$ | $S_{\text{hostile}}$ | $H_{\text{distress}}$ | **L3** | • **Silent Protocol:** Exterior/interior sirens suppressed (preserves host life).<br>• **Perimeter:** Normal silent clearance.<br>• **Emergency:** Silent NENA Digital CAD alert dispatched with live telemetry. |
 
 ---
 
@@ -126,7 +132,7 @@ The core engineering distinction of Vigil+ is that **it does not assume ideal te
    * *Adaptation:* Subject marked as $S_{\text{suspicious}}$ with elevated threat multiplier. If dwell time $>30\text{s}$ at door $\to$ Level 2 escalation.
 4. **A4. 2D Facial Spoofing Attack ($\Phi_V = 0.0$):**
    * *Detection:* 2D liveness check failure (no micro-saccades, static IR reflection, zero parallax).
-   * *Adaptation:* Rejection. Suppress auto-unlock. Require dynamic two-way voice challenge.
+   * *Adaptation:* Rejection. Suppress perimeter clearance. Trigger dynamic two-way voice challenge via Ring speaker.
 
 ### Category B: Acoustic & Microphone Failures
 5. **B1. Acoustic Jamming / High Ambient Noise ($\Phi_A = 0.0$):**
@@ -137,7 +143,7 @@ The core engineering distinction of Vigil+ is that **it does not assume ideal te
    * *Adaptation:* **Spectral Audio Zoom**. Dynamic range boosted; targeted acoustic transcription correlated with lingering motion.
 7. **B3. Voice Replay / Deepfake Attack ($\Phi_A = 0.0$):**
    * *Detection:* Acoustic Room Impulse Response (RIR) anomaly; outdoor porch reverberation mismatch; speaker proximity distortion.
-   * *Adaptation:* Voice alone denied authority to unlock without simultaneous 3D facial liveness match.
+   * *Adaptation:* Voice alone denied authority to disarm perimeter alert without simultaneous 3D facial liveness match.
 
 ### Category C: Motion Sensor Edge Cases
 8. **C1. Stealth Crawl / PIR Blindspot ($\Phi_M = 0.0$):**
@@ -149,22 +155,22 @@ The core engineering distinction of Vigil+ is that **it does not assume ideal te
 
 ### Category D: Host Biometrics & Wearable Failures
 10. **D1. Bee Off-Wrist / Charging ($H = \text{unknown}$):**
-    * *Detection:* Bee telemetry reports `device_state = off_wrist` or `charging = true` ($\text{HeartRate} = \text{null}$).
-    * *Adaptation:* **Conservative Fail-Safe Default**. System defaults to $H_{\text{asleep}}$ (safest assumption). Haptic wake is rerouted to **Alexa bedroom whisper/chime** at progressive volume.
-11. **D2. Host Sedated / Unresponsive to Haptics ($H = \text{unresponsive}$):**
-    * *Detection:* Bee accelerometer records zero movement or dismissal after $30\text{s}$ of continuous haptic pulsing.
-    * *Adaptation:* **Actuator Escalation**. Fire TV deterrent volume increased by $+6\text{dB}$; smart bedroom lights turn on softly; Alexa voice alert triggered.
+    * *Detection:* Bee telemetry reports `device_state = off_wrist` or `charging = true` with zero audio logging.
+    * *Adaptation:* **Conservative Fail-Safe Default**. System defaults to $H_{\text{asleep}}$ (safest assumption). Wake alerts routed directly to **Alexa bedroom whisper/chime** and phone nightstand hum.
+11. **D2. Host Sedated / Unresponsive ($H = \text{unresponsive}$):**
+    * *Detection:* Zero vocal acknowledgement or motion after $30\text{s}$ of bedroom whisper and phone nightstand alert.
+    * *Adaptation:* **Actuator Escalation**. Fire TV deterrent volume increased by $+6\text{dB}$; smart bedroom lights turn on softly; Alexa voice alert escalates volume.
 12. **D3. Host Sleepwalking / Parasomnia ($H = \text{parasomnia}$):**
-    * *Detection:* Low HRV + erratic nocturnal movement without normal interactive responsiveness.
-    * *Adaptation:* Alexa prompts: *"Confirm status."* If no verbal or wearable input received, exterior doors remain locked.
+    * *Detection:* Erratic nocturnal movement without normal interactive responsiveness.
+    * *Adaptation:* Alexa prompts: *"Confirm status."* If no verbal response received, perimeter alert remains armed.
 
 ### Category E: Multi-Subject & Adversarial Edge Cases
 13. **E1. The Piggyback (Family Member + Stranger):**
     * *Detection:* Bounding box scene graph identifies 1 Known Face + 1 Unverified Person in the same threshold frame.
-    * *Adaptation:* **Conditional Disarm**. Door unlocks, but chime alerts household: *"Welcome home. Guest detected."* Bedroom console notified silently.
+    * *Adaptation:* **Conditional Disarm**. Exterior alert clears, but chime alerts household: *"Welcome home. Guest detected."* Bedroom console notified silently.
 14. **E2. Host Duress / Armed Coercion:**
-    * *Detection:* Host at door exhibiting extreme tachycardia ($>140\text{ BPM}$) while accompanied by an unverified person; or host speaks a pre-configured duress codeword.
-    * *Adaptation:* **Silent Duress Protocol**. Door unlocks normally (preserving physical safety). All audible sirens are suppressed. Silent Level 3 CAD emergency dispatch sent immediately to 911.
+    * *Detection:* Host at door accompanied by unverified person speaking a pre-configured duress codeword or exhibiting distress.
+    * *Adaptation:* **Silent Duress Protocol**. Normal arrival simulated (preserving physical safety). All audible sirens suppressed. Silent Level 3 NENA Digital CAD emergency manifest compiled and staged for dispatch.
 
 ---
 
@@ -181,20 +187,30 @@ async def audit_perimeter_event(event_payload: dict) -> dict:
 
 @mcp.tool()
 async def query_wearer_state(user_id: str) -> dict:
-    """Queries Bee wearable for current physiological state:
-    returns {is_awake: bool, sleep_stage: str, heart_rate: int, on_wrist: bool}"""
+    """Queries Bee context via bee-cli (`bee now --json`) and wearable status:
+    returns {
+        is_awake: bool,
+        inference_basis: str,           # 'speech_recency_and_stillness' or 'apple_watch_healthkit'
+        minutes_since_last_speech: int,  # Derived from bee now utterance timestamps
+        device_tier: str,                # 'bee_pioneer' or 'apple_watch'
+        heart_rate: Optional[int],       # Available only on Tier B Apple Watch
+        on_wrist: bool
+    }"""
 
 @mcp.tool()
-async def trigger_wearer_haptic(user_id: str, intensity: str, duration_sec: int) -> bool:
-    """Triggers haptic wake-up vibration on the resident's Bee wearable."""
+async def trigger_tactical_wake(user_id: str, channel: str = "echo_whisper") -> dict:
+    """Executes private interior wake-up: triggers bedroom Echo low-frequency whisper
+    and nightstand phone Critical Alert hum without outdoor acoustic spillage."""
 
 @mcp.tool()
 async def trigger_firetv_deterrence(mode: str, volume_percent: int) -> dict:
-    """Launches Fire TV deterrent player: 'simulated_party', 'dog_bark', or 'camera_feed'."""
+    """Launches Fire TV deterrent player: 'simulated_party', 'dog_bark', or 'camera_feed',
+    preceded by 150ms hallway Echo Boot-Bridge footstep audio."""
 
 @mcp.tool()
 async def format_emergency_cad_packet(incident_id: str) -> dict:
-    """Compiles AWS Bedrock-verified 911 CAD manifest with evidence timeline and coordinates."""
+    """Compiles NENA-compliant Digital CAD manifest (RapidSOS format) with cryptographic
+    SHA-256 hash, evidence timeline, photographic stills, and coordinates."""
 ```
 
 ### 5.2 Amazon Bedrock Multimodal Threat Assessment Schema
@@ -231,19 +247,24 @@ Vigil/
 ├── pyproject.toml                 # uv/Python dependencies (mcp, boto3, pydantic, pytest)
 ├── docs/
 │   ├── SPEC.md                    # System specification & mathematical formulations
+│   ├── SYSTEM_DESIGN.md           # Operational modes, dwell dynamics & personas
+│   ├── UI_UX_SPECIFICATION.md     # Design tokens, wireframes & anti-slop rules
+│   ├── UI_UX_DESIGN_DECISIONS.md  # DR-01 to DR-06 design rationale
 │   ├── AWS_INTEGRATION.md         # Bedrock & Kiro usage documentation (AWS Builder requirement)
 │   └── FRICTION_LOG.md            # Developer friction log for 10% judging bonus
 ├── src/
 │   ├── __init__.py
 │   ├── server.py                  # FastMCP Streamable HTTP server entrypoint
 │   ├── core/
+│   │   ├── types.py               # Strict Pydantic models (Φ, Telemetry, State, CAD)
 │   │   ├── state_machine.py       # Deterministic threat level state machine (L0 - L3)
 │   │   ├── integrity_auditor.py   # Φ vector evaluator and degraded-mode logic
-│   │   └── cad_dispatcher.py      # Emergency services payload generator
+│   │   └── cad_dispatcher.py      # Emergency services NENA CAD payload generator
 │   ├── adapters/
-│   │   ├── ring_adapter.py        # Ring API & simulator bridge
-│   │   ├── bee_adapter.py         # Bee CLI / MCP wrapper
-│   │   ├── firetv_adapter.py      # Fire TV WebSocket / MQTT deterrence launcher
+│   │   ├── ring_adapter.py        # Ring API, WebRTC & VideoProcessor plugin bridge
+│   │   ├── bee_adapter.py         # Bee CLI `bee now` wrapper & sleep inference
+│   │   ├── firetv_adapter.py      # Fire TV WebSocket bridge & bundled .aac deterrence
+│   │   ├── alexa_adapter.py       # Bedroom whisper SSML & Echo Boot-Bridge trigger
 │   │   └── bedrock_analyzer.py    # AWS Bedrock Claude 3.5 Sonnet integration
 │   └── simulator/
 │       ├── scenario_runner.py     # Deterministic multi-device scenario simulator
@@ -254,9 +275,26 @@ Vigil/
 ```
 
 ### Execution Milestones for Kiro Pro:
-1. **Milestone 1:** Scaffold project, dependencies (`pyproject.toml`), and core state machine.
+1. **Milestone 1:** Scaffold project, dependencies (`pyproject.toml`), and core Pydantic types (`src/core/types.py`).
 2. **Milestone 2:** Implement `IntegrityAuditor` and `ScenarioRunner` with the 10 baseline scenarios.
 3. **Milestone 3:** Implement Degraded Mode Protocol (DMP) handling all 14 edge cases.
 4. **Milestone 4:** Build FastMCP server endpoints and AWS Bedrock adapter with schema enforcement.
 5. **Milestone 5:** Connect device simulators (Ring, Bee, Fire TV) and pass 100% of automated tests.
 6. **Milestone 6:** Finalize documentation (`AWS_INTEGRATION.md`, `FRICTION_LOG.md`) and verify open-source license.
+
+---
+
+## 7. The Ground-Truth Reality & Assumption Transformation Matrix
+
+To guarantee that Vigil+ is built upon engineering reality rather than vaporware, every initial design assumption was subjected to a Devil's Advocate audit and tested against the official APIs and physical hardware:
+
+| Domain | False / Naive Assumption | Ground-Truth Reality | The Hardened Vigil Feature / Moat |
+| :--- | :--- | :--- | :--- |
+| **Physical Security** | Ring doorbells can lock/unlock physical deadbolts. | Ring doorbells have zero mechanical motors or latch sensors. "Software cannot save you from a crowbar." | **Asymmetric Psychological Deterrence:** The "Home Alone" bluff (Fire TV + Echo) convinces prowlers the house is awake and occupied. Verified arrivals clear perimeter alerts with zero-trace. |
+| **Bee Wearable Actuation** | `bee-cli` has a command to trigger haptic vibrations (`bee vibrate`). | `bee-cli` is strictly a read-only memory and context interface. No actuation endpoint exists. | **Tactical Bedroom Wake-Up:** The bedroom **Echo Dot** delivers pitch-shifted whispered SSML at bedside; the smartphone delivers a low-frequency nightstand hum. |
+| **Bee Biometrics** | Bee Pioneer outputs heart rate (BPM) and REM sleep stages. | The Bee Pioneer clip contains microphones and an accelerometer; it has no optical PPG sensor. | **Temporal Bio-Grounding:** Sleep is inferred from **conversational silence in `bee now --json` (>1h) + accelerometer stillness**. Heart rate is strictly scoped to Tier B (Apple Watch via HealthKit). |
+| **Fire TV Wake Latency** | Fire TV can wake instantly from standby and blast audio in 0ms. | HDMI-CEC handshake takes 3 to 4 seconds to power on a TV display from cold standby. | **The Echo Boot-Bridge:** The hallway Echo Dot fires low-latency footstep audio in **150ms** to bridge the 3-second HDMI-CEC negotiation window. |
+| **Fire TV Display HUD** | Fire TV can draw arbitrary floating web overlays over running DRM streaming video. | Android TV / Fire OS strictly prevents third-party apps from overlaying Widevine L1 video. | **Native Heads-Up Toasts & Foreground Intents:** Uses native system notifications for couriers and foreground intents for active Level 2/3 breach feeds. |
+| **Emergency Telephony** | Software can automatically place robocalls to 911 dispatch. | Automated 911 robocalls are illegal under US Federal law (FCC / 47 U.S.C. § 227). | **NENA-Compliant Digital CAD Manifest:** Formatted JSON payload (RapidSOS format) staged for 1-tap resident SOS transmission with cryptographic SHA-256 hash. |
+| **AI Decision Latency** | AWS Bedrock Claude 3.5 Sonnet can make sub-second safety reflexes. | Base64 image upload + multimodal LLM inference takes 1.5s to 3.0s round-trip. | **Dual-Brain Architecture:** System 1 local deterministic state machine fires immediate physical reflexes (<50ms); System 2 Bedrock handles cognitive threat attribution (~2s). |
+| **Network Loss** | Network drops should be treated as an alarm state / invasion. | Home Wi-Fi drops regularly (router reboots, DHCP leases). False alarms destroy user trust. | **Local Hardening & Silent Containment:** Internet loss ($\Phi_{\text{net}} = 0$) engages local edge sentry, illuminates courtesy light, and sends a contained local phone notice. Zero false 911 dispatches. |
