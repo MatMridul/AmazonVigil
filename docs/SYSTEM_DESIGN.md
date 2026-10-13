@@ -203,3 +203,33 @@ Vigil+ was systematically audited against ground truth, physical acoustics, and 
    * *The Myth:* Software should dial 911 directly via automated voice.
    * *The Reality:* Automated 911 robocalls are illegal under US Federal law (FCC).
    * *The Grounded Feature:* Vigil formats a cryptographic **NENA-Compliant Digital CAD Incident Manifest (RapidSOS format)** staged for 1-tap resident transmission, complete with GPS, evidentiary stills, and Bedrock reasoning justification.
+
+6. **Acoustic Duplex Cancellation (No Microphone Self-Feedback Loop):**
+   * *The Myth:* Ring two-way intercom can blast loud sound while simultaneously analyzing ambient audio without interference.
+   * *The Reality:* Ring mic and speaker are 1.5 inches apart; outbound bluff audio loops directly into the mic, triggering false breach escalation.
+   * *The Grounded Feature:* `RingAdapter` sets an `AudioDuplexMute` lock that suppresses inbound mic intake during outbound bluff playback plus 500ms acoustic dampening.
+
+7. **Living Room Context Gating (No False Alarms on Movie Night):**
+   * *The Myth:* Blasting barking dogs on Fire TV whenever an unverified person lingers at the door is always desirable.
+   * *The Reality:* If the family is sitting on the couch at 9 PM watching a movie ($H_{\text{awake}}$), blasting 85dB dog barks causes customer panic and return.
+   * *The Grounded Feature:* Fire TV acoustic deterrence is strictly gated to $H_{\text{asleep}}$ and $H_{\text{away}}$. When $H_{\text{awake}}$, Fire TV renders *only* a subtle PIP toast with 1-click remote `Back` dismissal.
+
+8. **Cloud Token Budgeting & LLM JSON Resilience:**
+   * *The Myth:* We can send raw 1080p images to Bedrock on every motion event and expect guaranteed valid JSON back.
+   * *The Reality:* Flapping sensors cause rate limits ($ThrottlingException$), high token costs, and LLMs occasionally return markdown code fences ````json ... ````.
+   * *The Grounded Feature:* WebP compression (65% token cut), 30-second token throttling valve, and Pydantic JSON repair fallback.
+
+9. **Municipal False Alarm Mitigation & Safe Disarm PIN:**
+   * *The Myth:* 1-tap 911 dispatch cards require no authorization safeguards.
+   * *The Reality:* Groggy residents woken up at 3 AM risk panic-tapping 911 on false alarms, incurring $100–$500 municipal police fines.
+   * *The Grounded Feature:* 10-second cancel countdown window + 4-digit voice/touch Disarm PIN (*"Alexa, disarm 1-2-3-4"*) to safely abort dispatch staging.
+
+10. **Agentic Conversational Surface (Not a Dumb RPC Server):**
+    * *The Myth:* Alexa+ only needs low-level emergency actuation tools.
+    * *The Reality:* Hackathon judges evaluate Alexa+ on agentic interaction, event reasoning, and configuration.
+    * *The Grounded Feature:* FastMCP exposes conversational tools (`explain_incident_reasoning`, `set_mesh_guard_profile`) with `idempotency_token` deduplication.
+
+11. **Zero-Hardware Evaluation Sandbox:**
+    * *The Myth:* Judges will set up physical Ring doorbells, Fire TV sticks, and Bee clips to test the project.
+    * *The Reality:* Judges have 3 minutes to evaluate on their laptop.
+    * *The Grounded Feature:* `src/simulator/` with `canned_scenarios.json` and CLI runner (`uv run vigil simulate --scenario 02`) executes all 10 scenarios and 14 failure vectors in $<5\text{s}$ with zero hardware dependencies.
