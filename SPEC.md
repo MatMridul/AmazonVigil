@@ -234,14 +234,6 @@ When a suspicious event occurs, the Ring snapshot and audio transcript are evalu
 }
 ```
 
-### 5.3 Adaptive Foveated Compression Pipeline (AFCP)
-To minimize token consumption and cloud latency while maximizing forensic accuracy on small objects (crowbars, masks, weapons), Ring snapshots pass through an edge-assisted **Foveated Compression Pipeline** (`src/core/image_preprocessor.py`) before transmission to Amazon Bedrock:
-1. **Motion Bounding Box Isolation:** Uses Ring PIR telemetry or frame differencing to extract the active motion Region of Interest (ROI) $[x, y, w, h]$.
-2. **Peripheral Context Thumbnail:** Global downscale of the full 1080p frame to $480 \times 270$ WebP (Quality 65) to preserve ambient situational awareness.
-3. **Foveated ROI Crop:** High-resolution $20\%$ context-padded crop around the subject ($512 \times 512$, WebP Quality 85) to preserve fine edge contrast on hands, faces, and held implements.
-4. **Composite Canvas:** Stitched side-by-side ($992 \times 512$ canvas) into a single compact image payload ($<45\text{ KB}$).
-5. **Impact:** Reduces Bedrock multimodal input tokens from $\sim 1,600$ to $\sim 450$ (**$72\%$ cost reduction**), trims $\sim 850\text{ms}$ off round-trip inference latency, and eliminates downscaling blur on forensic features.
-
 ---
 
 ## 6. Implementation Roadmap for Kiro Pro
@@ -252,7 +244,7 @@ The repository is organized cleanly for automated execution using Kiro Pro:
 Vigil/
 ├── README.md                      # Overview, setup, architecture diagram, license
 ├── LICENSE                        # MIT License (Open Source Challenge requirement)
-├── pyproject.toml                 # uv/Python dependencies (mcp, boto3, pydantic, pillow, pytest)
+├── pyproject.toml                 # uv/Python dependencies (mcp, boto3, pydantic, pytest)
 ├── docs/
 │   ├── SPEC.md                    # System specification & mathematical formulations
 │   ├── SYSTEM_DESIGN.md           # Operational modes, dwell dynamics & personas
@@ -267,7 +259,6 @@ Vigil/
 │   │   ├── types.py               # Strict Pydantic models (Φ, Telemetry, State, CAD)
 │   │   ├── state_machine.py       # Deterministic threat level state machine (L0 - L3)
 │   │   ├── integrity_auditor.py   # Φ vector evaluator and degraded-mode logic
-│   │   ├── image_preprocessor.py  # Adaptive Foveated Compression Pipeline (AFCP)
 │   │   └── cad_dispatcher.py      # Emergency services NENA CAD payload generator
 │   ├── adapters/
 │   │   ├── ring_adapter.py        # Ring API, WebRTC & VideoProcessor plugin bridge

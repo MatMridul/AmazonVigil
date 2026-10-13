@@ -50,7 +50,7 @@ flowchart TD
 - [ ] **Task 1.1: Project Root Setup**
   - Initialize directory structure: `src/core`, `src/adapters`, `src/simulator`, `src/web`, `tests`, `docs`.
   - Create `pyproject.toml` with `uv` support targeting Python 3.11+.
-  - Dependencies: `mcp>=1.0.0`, `boto3>=1.34.0`, `pydantic>=2.0.0`, `pytest>=8.0.0`, `fastapi>=0.110.0`, `uvicorn>=0.28.0`, `pillow>=10.0.0`.
+  - Dependencies: `mcp>=1.0.0`, `boto3>=1.34.0`, `pydantic>=2.0.0`, `pytest>=8.0.0`, `fastapi>=0.110.0`, `uvicorn>=0.28.0`.
 - [ ] **Task 1.2: Open Source Licensing**
   - Verify `LICENSE` (MIT License) with full attribution for the **Open Source Challenge**.
 - [ ] **Task 1.3: Core Type Definitions & Pydantic Schemas**
@@ -127,9 +127,6 @@ flowchart TD
   - Enforce strict Pydantic JSON schema extraction for `ThreatAssessment`.
 - [ ] **Task 6.3: Multi-Modal Fusion Prompt**
   - Feed Ring image base64 + audio transcript + host state into Bedrock for cognitive threat scoring.
-- [ ] **Task 6.4: Adaptive Foveated Compression Pipeline (AFCP) (`src/core/image_preprocessor.py`)**
-  - Implement dual-patch foveated image compressor (Pillow): 480x270 ambient context thumbnail + 512x512 high-res ROI crop, WebP encoded.
-  - Reduce Bedrock vision input tokens by ~72% (from ~1,600 to ~450 tokens) and accelerate round-trip latency by ~850ms.
 
 ---
 
