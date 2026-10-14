@@ -50,11 +50,11 @@ flowchart TD
 - [ ] **Task 1.1: Project Root Setup**
   - Initialize directory structure: `src/core`, `src/adapters`, `src/simulator`, `src/web`, `tests`, `docs`.
   - Create `pyproject.toml` with `uv` support targeting Python 3.11+.
-  - Dependencies: `mcp>=1.0.0`, `boto3>=1.34.0`, `pydantic>=2.0.0`, `pytest>=8.0.0`, `fastapi>=0.110.0`, `uvicorn>=0.28.0`.
+  - Dependencies: `mcp>=1.0.0`, `boto3>=1.34.0`, `pydantic>=2.0.0`, `pytest>=8.0.0`, `fastapi>=0.110.0`, `uvicorn>=0.28.0`, `pillow>=10.0.0`.
 - [ ] **Task 1.2: Open Source Licensing**
   - Verify `LICENSE` (MIT License) with full attribution for the **Open Source Challenge**.
 - [ ] **Task 1.3: Core Type Definitions & Pydantic Schemas**
-  - Define `SensorIntegrityVector` ($\Phi_M, \Phi_V, \Phi_A \in [0.0, 1.0]$).
+  - Define `SensorIntegrityVector` ($\Phi_M, \Phi_V, \Phi_A, \Phi_{\text{net}} \in [0.0, 1.0]$).
   - Define `PerimeterTelemetry` ($M, V, A, \Phi$, timestamp, raw payloads).
   - Define `SubjectClassification` and `HostState`.
   - Define `ThreatAssessment` and `MeshActionPlan`.
@@ -114,7 +114,7 @@ flowchart TD
 - [ ] **Task 5.1: FastMCP Server Initialization (`src/server.py`)**
   - Configure FastMCP server with Streamable HTTP transport (MCP Spec 2025-11-25+).
 - [ ] **Task 5.2: Tool Registration**
-  - Expose `audit_perimeter_event`, `query_wearer_state`, `trigger_tactical_wake`, `trigger_firetv_deterrence`, `format_emergency_cad_packet`.
+  - Expose `audit_perimeter_event`, `query_wearer_state`, `trigger_tactical_wake`, `trigger_firetv_deterrence`, `format_emergency_cad_packet`, `disarm_perimeter_alert`, `explain_incident_reasoning`, `set_mesh_guard_profile`.
 - [ ] **Task 5.3: End-to-End MCP Verification**
   - Verify MCP Inspector connectivity and tool invocation with JSON payloads.
 

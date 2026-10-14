@@ -33,9 +33,12 @@ Vigil+ unifies four Amazon device ecosystems and AWS cloud intelligence into a s
 * **Exposed Tool Contracts:**
   * `audit_perimeter_event(event_payload: dict) -> dict`
   * `query_wearer_state(user_id: str) -> dict`
-  * `trigger_tactical_wake(user_id: str, channel: str) -> dict`
-  * `trigger_firetv_deterrence(mode: str, volume_percent: int) -> dict`
+  * `trigger_tactical_wake(user_id: str, channel: str, idempotency_token: str) -> dict`
+  * `trigger_firetv_deterrence(mode: str, volume_percent: int, idempotency_token: str) -> dict`
   * `format_emergency_cad_packet(incident_id: str) -> dict`
+  * `disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict`
+  * `explain_incident_reasoning(incident_id: Optional[str]) -> dict`
+  * `set_mesh_guard_profile(mode: str, duration_hours: Optional[int]) -> dict`
 
 ### 2.2 Ring Ingest & Perimeter API
 * **Reference Starter:** [`AmazonAppDev/ring-api-helloworld`](https://github.com/AmazonAppDev/ring-api-helloworld) (TypeScript / React).

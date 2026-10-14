@@ -80,9 +80,9 @@ $$\mathbf{ObservedEvent} = \left( \mathbf{Ring}_{\text{Sensors}} \odot \vec{\Phi
   $$\mathcal{A} = \{ A_{\text{voice\_known}}, A_{\text{speech\_benign}}, A_{\text{speech\_hostile}}, A_{\text{breach\_noise}}, A_{\text{ambient\_quiet}}, A_{\text{jammed}} \}$$
 
 ### 2.2 The Signal Integrity Vector ($\vec{\Phi}_{\text{Integrity}}$)
-To ensure zero crashes during hardware faults, physical tampering, or bad weather:
+To ensure zero crashes during hardware faults, physical tampering, bad weather, or Wi-Fi unobservability:
 
-$$\vec{\Phi} = \begin{bmatrix} \Phi_M \\ \Phi_V \\ \Phi_A \end{bmatrix}, \quad \Phi_k \in \{1.0 \text{ (Nominal)}, 0.5 \text{ (Degraded)}, 0.0 \text{ (Failed / Tampered)}\}$$
+$$\vec{\Phi} = \begin{bmatrix} \Phi_M \\ \Phi_V \\ \Phi_A \\ \Phi_{\text{net}} \end{bmatrix}, \quad \Phi_k \in \{1.0 \text{ (Nominal)}, 0.5 \text{ (Degraded)}, 0.0 \text{ (Failed / Tampered / Offline)}\}$$
 
 ### 2.3 Subject Classification ($\mathbf{Subject}_{\text{Class}}$)
 * $S_{\text{family}}$: Authorized resident / family / whitelisted guest.
@@ -198,12 +198,12 @@ async def query_wearer_state(user_id: str) -> dict:
     }"""
 
 @mcp.tool()
-async def trigger_tactical_wake(user_id: str, channel: str = "echo_whisper") -> dict:
+async def trigger_tactical_wake(user_id: str, channel: str = "echo_whisper", idempotency_token: str = "") -> dict:
     """Executes private interior wake-up: triggers bedroom Echo low-frequency whisper
     and nightstand phone Critical Alert hum without outdoor acoustic spillage."""
 
 @mcp.tool()
-async def trigger_firetv_deterrence(mode: str, volume_percent: int) -> dict:
+async def trigger_firetv_deterrence(mode: str, volume_percent: int, idempotency_token: str = "") -> dict:
     """Launches Fire TV deterrent player: 'simulated_party', 'dog_bark', or 'camera_feed',
     preceded by 150ms hallway Echo Boot-Bridge footstep audio."""
 
@@ -211,10 +211,25 @@ async def trigger_firetv_deterrence(mode: str, volume_percent: int) -> dict:
 async def format_emergency_cad_packet(incident_id: str) -> dict:
     """Compiles NENA-compliant Digital CAD manifest (RapidSOS format) with cryptographic
     SHA-256 hash, evidence timeline, photographic stills, and coordinates."""
+
+@mcp.tool()
+async def disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict:
+    """Cancels active CAD staging countdown and disarms perimeter alert upon
+    verified 4-digit PIN authorization ("Alexa, disarm 1-2-3-4")."""
+
+@mcp.tool()
+async def explain_incident_reasoning(incident_id: Optional[str] = None) -> dict:
+    """Conversational agent tool: returns plain-English incident summary, timeline,
+    and Bedrock threat justification for resident queries ("Alexa, what happened last night?")."""
+
+@mcp.tool()
+async def set_mesh_guard_profile(mode: str, duration_hours: Optional[int] = None) -> dict:
+    """Adjusts perimeter sensitivity and operational profile (Daytime Ambient,
+    Night Sentry, Vacation, Duress) via voice interaction."""
 ```
 
 ### 5.2 Amazon Bedrock Multimodal Threat Assessment Schema
-When a suspicious event occurs, the Ring snapshot and audio transcript are evaluated by **Amazon Bedrock (Claude 3.5 Sonnet)** using structured JSON outputs:
+When a suspicious event occurs, the Ring snapshot is proportionally resized preserving native aspect ratio (e.g., $1024 \times 576$ for 16:9), encoded as WebP, and evaluated alongside the ambient audio transcript by **Amazon Bedrock (Claude 3.5 Sonnet)** using structured JSON outputs:
 
 ```json
 {

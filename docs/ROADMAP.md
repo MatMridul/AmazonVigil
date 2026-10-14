@@ -227,6 +227,6 @@ Our final submission on [Devpost](https://amazonappdev2026.devpost.com/) (before
   * Minimal IAM policy granting `bedrock:InvokeModel` strictly scoped to the required Claude foundation models.
 
 ### 5.2 Cost & Budget Optimization
-* **Token Efficiency:** Ring snapshots are downscaled to $1024 \times 768$ and compressed with WebP before base64 encoding, reducing input tokens by $65\%$.
+* **Proportional Frame Resizing & WebP:** Ring snapshots (1080p 16:9) are proportionally downscaled preserving native aspect ratio (e.g., $1024 \times 576$ or $960 \times 540$) and compressed into WebP before base64 encoding, reducing pixels by 75% without geometric distortion.
 * **Rate-Limiting Valve:** Enforces maximum 1 Bedrock call per 30 seconds per zone to prevent API flooding and token exhaustion.
 * **Estimated Evaluation Cost:** $< \$3.50$ total across 500+ test runs and live demonstrations (easily covered by free tier or promotional credits).
