@@ -1,4 +1,4 @@
-# Project Vigil+: Official Resources & SDK Scoping Guide
+# Amazon Vigil: Official Resources & SDK Scoping Guide
 
 **Reference Source:** [Amazon Developer Hackathon 2026 Resources Portal](https://amazonappdev2026.devpost.com/resources)  
 **Document Status:** Approved & Integrated into Architecture  
@@ -7,11 +7,11 @@
 
 ## 1. Overview of Scoped Ecosystems
 
-Vigil+ unifies four Amazon device ecosystems and AWS cloud intelligence into a single ambient security mesh. Below is the mapping of official starter codebases, SDKs, APIs, and developer tooling:
+Amazon Vigil unifies four Amazon device ecosystems and AWS cloud intelligence into a single ambient security mesh. Below is the mapping of official starter codebases, SDKs, APIs, and developer tooling:
 
 ```
 ┌───────────────────┬───────────────────────────────────────────┬────────────────────────────────────────────┐
-│ Ecosystem         │ Official Tool / Starter Repository        │ Scoped Role in Vigil+                      │
+│ Ecosystem         │ Official Tool / Starter Repository        │ Scoped Role in Vigil                       │
 ├───────────────────┼───────────────────────────────────────────┼────────────────────────────────────────────┤
 │ **Alexa+**        │ MCP Spec 2025-11-25+ (Streamable HTTP)    │ Central Incident Commander & FastMCP Hub   │
 │ **Ring**          │ `AmazonAppDev/ring-api-helloworld`        │ Perimeter Sentry (Motion, WebRTC, Audio)   │

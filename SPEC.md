@@ -1,6 +1,6 @@
-# Project Vigil+: Master System & Architecture Specification
+# Amazon Vigil: Master System & Architecture Specification
 
-**System Name:** Vigil+  
+**System Name:** Amazon Vigil (Code Name: Vigil)  
 **Target Competition:** [Build, Ship, Shape: Amazon Developer Hackathon 2026](https://amazonappdev2026.devpost.com/)  
 **Primary Track:** Alexa+ (Agent Skills / Self-Hosted MCP Server over Streamable HTTP)  
 **Layered Mini-Challenges:** AWS Builder Challenge & Open Source Challenge  
@@ -19,7 +19,7 @@ Current smart home security suffers from a **fundamental decoupling**:
 3. **The Personal Wearable (Bee)** tracks real-time biometrics and circadian state, but lives in a silo disconnected from home automation.
 4. **The Living Room Screen (Fire TV)** sits dark and idle while security events unfold outside the door.
 
-**Vigil+** bridges this gap into an **autonomous multi-device perimeter defense and deterrence mesh**:
+**Amazon Vigil** bridges this gap into an **autonomous multi-device perimeter defense and deterrence mesh**:
 * **Ring** acts as the high-resolution sensory perimeter (Motion, Vision, Audio) with client-side frame processing to detect physical lens tampering ($\Phi_V$).
 * **Bee** grounds the system in human context (detecting whether the resident is awake or in deep sleep via conversation recency `bee now` and accelerometer stillness).
 * **Alexa+** acts as the central Incident Commander via a self-hosted **Model Context Protocol (MCP)** server, coordinating **System 1 local edge reflexes (<50ms)** with **System 2 cognitive multimodal reasoning (Amazon Bedrock)**.
@@ -118,7 +118,7 @@ $$\vec{\Phi} = \begin{bmatrix} \Phi_M \\ \Phi_V \\ \Phi_A \\ \Phi_{\text{net}} \
 
 ## 4. The Degraded-Mode Protocol (DMP): 14 Edge Cases & Failure Adaptations
 
-The core engineering distinction of Vigil+ is that **it does not assume ideal telemetry**. If a camera is spray-painted, a wearable is off-wrist, or cloud APIs throttle, the system adapts deterministically:
+The core engineering distinction of Amazon Vigil is that **it does not assume ideal telemetry**. If a camera is spray-painted, a wearable is off-wrist, or cloud APIs throttle, the system adapts deterministically:
 
 ### Category A: Optical & Vision Failures
 1. **A1. Lens Tamper / Total Blinding ($\Phi_V = 0.0$):**
@@ -176,7 +176,7 @@ The core engineering distinction of Vigil+ is that **it does not assume ideal te
 
 ## 5. System Architecture & MCP Tool Contracts
 
-Vigil+ is implemented as a **FastMCP Server** exposing standard tools over **Streamable HTTP** (MCP Specification 2025-11-25+):
+Amazon Vigil is implemented as a **FastMCP Server** exposing standard tools over **Streamable HTTP** (MCP Specification 2025-11-25+):
 
 ### 5.1 MCP Tools Exposed to Alexa+
 ```python
@@ -301,7 +301,7 @@ Vigil/
 
 ## 7. The Ground-Truth Reality & Assumption Transformation Matrix
 
-To guarantee that Vigil+ is built upon engineering reality rather than vaporware, every initial design assumption was subjected to a Devil's Advocate audit and tested against the official APIs and physical hardware:
+To guarantee that Amazon Vigil is built upon engineering reality rather than vaporware, every initial design assumption was subjected to a Devil's Advocate audit and tested against the official APIs and physical hardware:
 
 | Domain | False / Naive Assumption | Ground-Truth Reality | The Hardened Vigil Feature / Moat |
 | :--- | :--- | :--- | :--- |

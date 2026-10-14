@@ -1,4 +1,4 @@
-# Project Vigil+: Roadmap, Engineering Standards & Hackathon Submission Blueprint
+# Amazon Vigil: Roadmap, Engineering Standards & Hackathon Submission Blueprint
 
 > **Reference Specification:** [`SPEC.md`](../SPEC.md) • [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) • [`UI_UX_SPECIFICATION.md`](UI_UX_SPECIFICATION.md)  
 > **Target:** 1st Place Alexa+ Track ($25,000) + AWS Builder ($5,000) + Open Source ($5,000) = **$35,000 Cash + $20,000 AWS Credits** (+10% Friction Log Bonus)  
@@ -8,7 +8,7 @@
 
 ## 1. Development Cycle & SemVer Milestones
 
-Vigil+ follows strict **Semantic Versioning 2.0.0** (`v0.1.0` $\to$ `v1.0.0`). Every milestone is gated by automated CI checks, zero-hardware simulator reproducibility, and task phases defined in [`tasks.md`](../tasks.md):
+Amazon Vigil follows strict **Semantic Versioning 2.0.0** (`v0.1.0` $\to$ `v1.0.0`). Every milestone is gated by automated CI checks, zero-hardware simulator reproducibility, and task phases defined in [`tasks.md`](../tasks.md):
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -63,7 +63,7 @@ Vigil+ follows strict **Semantic Versioning 2.0.0** (`v0.1.0` $\to$ `v1.0.0`). E
 
 ## 2. Definition of Done (DoD) Hierarchy
 
-Vigil+ enforces a **Three-Tiered Definition of Done** to eliminate AI hallucination, broken edge cases, and incomplete features.
+Amazon Vigil enforces a **Three-Tiered Definition of Done** to eliminate AI hallucination, broken edge cases, and incomplete features.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -155,13 +155,13 @@ Our final submission on [Devpost](https://amazonappdev2026.devpost.com/) (before
 * **Hosting:** Public / Unlisted YouTube or Vimeo in 1080p/60fps or 4K with clear English voiceover and closed captions.
 * **Strict Timeline Breakdown:**
   * **0:00 – 0:35 (The Problem & The Lie):** Smart homes today spam push notifications, ring bells, and claim to lock phantom deadbolts while residents sleep through invasions. Software cannot stop a crowbar—only psychological deterrence can.
-  * **0:35 – 1:10 (The 4-Device Solution):** Introduce Vigil+ mesh: Ring perimeter, Bee bio-grounding, Alexa+ FastMCP incident commander, Echo Boot-Bridge (150ms footsteps), and Fire TV "Home Alone" bluff.
+  * **0:35 – 1:10 (The 4-Device Solution):** Introduce Amazon Vigil mesh: Ring perimeter, Bee bio-grounding, Alexa+ FastMCP incident commander, Echo Boot-Bridge (150ms footsteps), and Fire TV "Home Alone" bluff.
   * **1:10 – 2:05 (Live Multi-Device Execution — Scenario 02):** Prowler approaches at 3 AM. System 1 edge reflex mutes porch chime $\to$ bedroom Echo delivers low-frequency whisper $\to$ hallway Echo plays 150ms footsteps $\to$ Fire TV blasts barking German Shepherd $\to$ Bedrock Claude 3.5 Sonnet analyzes camera still $\to$ 911 CAD manifest staged on resident lock screen.
   * **2:05 – 2:35 (Adversarial Stress Test):** Prowler spray-paints the Ring camera lens ($\Phi_V \to 0.0$). VideoProcessor plugin flags occlusion; mesh automatically shifts to Acoustic-Motion Triangulation without blind-spot failure.
   * **2:35 – 3:00 (AWS Builder & Open Source Impact):** Showcase Bedrock token budgeting, Kiro Pro development artifacts, and open-source contribution to the Amazon developer ecosystem.
 
 ### Deliverable 3: Devpost Written Narrative
-* **Title:** **Vigil+: Multi-Device Ambient Defense & Psychological Deterrence Mesh**
+* **Title:** **Amazon Vigil: Multi-Device Ambient Defense & Psychological Deterrence Mesh**
 * **Tagline:** *Transforming off-the-shelf Ring, Alexa+, Fire TV, Bee Wearables, and AWS Bedrock into an autonomous residential perimeter defense system.*
 * **Tracks Targeted:**
   1. **Alexa+ Track ($25,000 First Place):** Leading use of MCP Streamable HTTP and multi-device agentic coordination.

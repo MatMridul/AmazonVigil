@@ -1,4 +1,4 @@
-# Project Vigil+: Master UI/UX Specification & Wireframe Blueprint
+# Amazon Vigil: Master UI/UX Specification & Wireframe Blueprint
 
 > **Specification Reference:** [`docs/UI_UX_DESIGN_DECISIONS.md`](UI_UX_DESIGN_DECISIONS.md) • [`docs/SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)  
 > **Target Audience:** Autonomous Coding Agents (Kiro, KiroCrew) & Frontend Engineers  
@@ -9,13 +9,13 @@
 
 ## 1. Design System Foundation & Design Tokens
 
-Vigil+ implements an **Architectural Ambient** design system. It eschews generic SaaS purple gradients, bubbly cards, and low-contrast text in favor of an authoritative, high-contrast residential aesthetic inspired by Bang & Olufsen, Teenage Engineering, and Linear.
+Amazon Vigil implements an **Architectural Ambient** design system. It eschews generic SaaS purple gradients, bubbly cards, and low-contrast text in favor of an authoritative, high-contrast residential aesthetic inspired by Bang & Olufsen, Teenage Engineering, and Linear.
 
 ### 1.1 Color Palette & Chroma Calibration
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        VIGIL+ CHROMATIC TOKENS                         │
+│                        VIGIL CHROMATIC TOKENS                          │
 ├───────────────────┬─────────────┬──────────────────────────────────────┤
 │ Token Name        │ Hex Code    │ Functional Role                      │
 ├───────────────────┼─────────────┼──────────────────────────────────────┤
@@ -65,7 +65,7 @@ The primary interface for the resident (Dr. Maya Lin) when reviewing home securi
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  VIGIL+   [PRIMARY RESIDENCE]                                         [MAYA LIN (ADMIN)] [● SYS] │
+│  VIGIL    [PRIMARY RESIDENCE]                                         [MAYA LIN (ADMIN)] [● SYS] │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                  │
 │   ┌──────────────────────────────────────────────────────────────────────────────────────────┐   │
@@ -113,7 +113,7 @@ When a masked prowler manipulates the lock at night, the screen does **not** fla
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  VIGIL+   [● ACTIVE DEFENSE RUNNING]                                  [ALERT: FRONT DOORWAY]     │
+│  VIGIL    [● ACTIVE DEFENSE RUNNING]                                  [ALERT: FRONT DOORWAY]     │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                  │
 │   ┌──────────────────────────────────────────────────────────────────────────────────────────┐   │
@@ -152,7 +152,7 @@ The smartphone provides on-the-go awareness when away, and contained nightstand 
 │  Tuesday, October 24                   │
 │                                        │
 │  ┌──────────────────────────────────┐  │
-│  │ 🛡️ VIGIL+ • CRITICAL ALERT        │  │
+│  │ 🛡️ VIGIL • CRITICAL ALERT         │  │
 │  │ Front Door Perimeter Active      │  │
 │  │                                  │  │
 │  │ Unknown individual at door.      │  │
@@ -200,7 +200,7 @@ If an active prowler is detected while watching TV, media automatically pauses, 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                  │
 │   ┌──────────────────────────────────────────────────────────────────────────────────────────┐   │
-│   │ 🛡️ VIGIL+ DEFENSE ACTIVE • LIVING ROOM SECURE                                           │   │
+│   │ 🛡️ VIGIL DEFENSE ACTIVE • LIVING ROOM SECURE                                            │   │
 │   │ "Front door monitored. Active deterrence running. CAD staged. Stay inside."              │   │
 │   └──────────────────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                                  │

@@ -1,4 +1,4 @@
-# Vigil+
+# Amazon Vigil
 
 **Autonomous Multi-Device Perimeter Defense & Deterrence Mesh**  
 *Built for the Amazon Developer Hackathon 2026 (Alexa+ Track, AWS Builder Challenge, Open Source Challenge)*
@@ -10,11 +10,11 @@
 
 ---
 
-## What Vigil+ Is
+## What Amazon Vigil Is
 
-Vigil+ is an autonomous, 100% software home defense and deterrence mesh that connects the front door, the living room, personal wearables, and the cloud into an ambient, coordinated security response.
+Amazon Vigil is an autonomous, 100% software home defense and deterrence mesh that connects the front door, the living room, personal wearables, and the cloud into an ambient, coordinated security response.
 
-Instead of sending passive smartphone notifications that get ignored when residents are asleep, Vigil+:
+Instead of sending passive smartphone notifications that get ignored when residents are asleep, Amazon Vigil:
 1. **Perimeter Awareness (Ring):** Ingests motion, WebRTC camera video, and audio; runs client-side `VideoProcessor` plugins to detect lens tampering and spray-paint sabotage.
 2. **Human Bio-Grounding (Bee Wearable):** Assesses whether the resident is awake or in deep sleep via conversation recency (`bee now`) and accelerometer stillness.
 3. **Ambient Incident Commander (Alexa+ via FastMCP):** Acts as the central coordinator, orchestrating low-latency local edge reflexes (<50ms) and cognitive multimodal threat analysis via **Amazon Bedrock (Claude 3.5 Sonnet)**.
@@ -25,7 +25,7 @@ Instead of sending passive smartphone notifications that get ignored when reside
 
 ## Key Documentation
 
-* 📖 **[Master System Specification](docs/SPEC.md)** — Mathematical sensor triad formulation, the 10-Scenario baseline matrix, and the 14-Edge-Case Degraded Mode Protocol (DMP).
+* 📖 **[Master System Specification](SPEC.md)** — Mathematical sensor triad formulation, the 10-Scenario baseline matrix, and the 14-Edge-Case Degraded Mode Protocol (DMP).
 * 📋 **[Implementation Tasks & Roadmap](tasks.md)** — Phase-by-phase execution plan for autonomous agents and developers.
 * ☁️ **[AWS Integration Guide](docs/AWS_INTEGRATION.md)** — Amazon Bedrock and Kiro Crew architecture for the AWS Builder Challenge.
 * 🛠️ **[Developer Friction Log](docs/FRICTION_LOG.md)** — Tooling telemetry and feedback for the Amazon developer ecosystem (+10% judging bonus).

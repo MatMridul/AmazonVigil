@@ -1,4 +1,4 @@
-# Project Vigil+: Phased Implementation Roadmap & Tasks
+# Amazon Vigil: Phased Implementation Roadmap & Tasks
 
 > **Target Workspace:** `C:\Mridul\Programs\Vigil`  
 > **Master Specifications:**  

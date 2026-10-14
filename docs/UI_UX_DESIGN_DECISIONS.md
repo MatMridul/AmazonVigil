@@ -1,4 +1,4 @@
-# Project Vigil+: UI/UX Design Decisions Log
+# Amazon Vigil: UI/UX Design Decisions Log
 
 > **Document Status:** Active Living Design Record  
 > **Repository:** [MatMridul/AmazonVigil](https://github.com/MatMridul/AmazonVigil)  
@@ -30,7 +30,7 @@ Security interfaces frequently fail in one of two extremes: either they resemble
 * **Legibility & Accessibility:** High optical contrast, generous negative space, and large, clear touch targets designed for comfortable readability by elderly parents or multi-generational households.
 
 ### 3. Crisis Interaction Model: "The Active Protector"
-* **Psychological Principle:** Vigil+ is an active guardian that bears the operational burden, not an alarmist bell that panics the resident.
+* **Psychological Principle:** Amazon Vigil is an active guardian that bears the operational burden, not an alarmist bell that panics the resident.
 * **Execution:** During an active perimeter threat, the interface remains calm, dark, and composed. Instead of flashing sirens, it presents a clear, step-by-step guidance card:
   > *"Unknown individual at front door. Front entryway monitored. Active deterrence running. Stay inside."*
 * Reassures the resident that the system is actively protecting the home while keeping them informed.

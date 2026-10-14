@@ -1,6 +1,6 @@
-# Project Vigil+: Detailed System Design, Features & Personas
+# Amazon Vigil: Detailed System Design, Features & Personas
 
-**System Name:** Vigil+  
+**System Name:** Amazon Vigil (Code Name: Vigil)  
 **Target Submission:** Amazon Developer Hackathon 2026 (Alexa+ Track)  
 **Document Status:** Master Architecture & Engineering Design  
 
@@ -8,7 +8,7 @@
 
 ## 1. Feature Specification & Operational Modes
 
-Vigil+ supports 4 distinct operational modes that dynamically govern sensor thresholds, dwell grace periods, and actuator responses:
+Amazon Vigil supports 4 distinct operational modes that dynamically govern sensor thresholds, dwell grace periods, and actuator responses:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -177,7 +177,7 @@ AWS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022
 
 ## 5. Architectural Decisions & Devil's Advocate Reality Check
 
-Vigil+ was systematically audited against ground truth, physical acoustics, and the official Amazon Hackathon SDKs. The results of this Devil's Advocate audit directly informed our hardened architecture:
+Amazon Vigil was systematically audited against ground truth, physical acoustics, and the official Amazon Hackathon SDKs. The results of this Devil's Advocate audit directly informed our hardened architecture:
 
 1. **Pure Software Perimeter (No Phantom Deadbolts):**
    * *The Myth:* Ring doorbells can mechanically lock or unlock doors.
