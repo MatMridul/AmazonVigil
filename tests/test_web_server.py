@@ -114,6 +114,19 @@ def test_phone_surface_served(server):
     assert b"NIGHTSTAND" in body or b"TRANSMIT 911" in body
 
 
+def test_firetv_surface_served(server):
+    status, body = _get(server, "/firetv.html")
+    assert status == 200
+    assert b"FIRE TV" in body or b"DETERRENCE" in body
+
+
+def test_firetv_js_uses_real_scenario_api(server):
+    # No-orphan proof: the Fire TV client must fetch the real pipeline endpoint.
+    status, body = _get(server, "/firetv.js")
+    assert status == 200
+    assert b"/api/scenario/" in body
+
+
 def _post_json(base, path, obj):
     data = json.dumps(obj).encode("utf-8")
     req = urllib.request.Request(
