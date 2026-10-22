@@ -108,5 +108,37 @@ def test_static_index_served(server):
     assert b"VIGIL" in body
 
 
+def test_phone_surface_served(server):
+    status, body = _get(server, "/phone.html")
+    assert status == 200
+    assert b"NIGHTSTAND" in body or b"TRANSMIT 911" in body
+
+
+def _post_json(base, path, obj):
+    data = json.dumps(obj).encode("utf-8")
+    req = urllib.request.Request(
+        base + path, data=data, headers={"Content-Type": "application/json"}, method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=5) as r:
+        return r.status, json.loads(r.read())
+
+
+def test_disarm_correct_pin_disarms(server):
+    status, d = _post_json(server, "/api/disarm", {"pin": "1234"})
+    assert status == 200
+    assert d["disarmed"] is True
+
+
+def test_disarm_wrong_pin_rejected(server):
+    status, d = _post_json(server, "/api/disarm", {"pin": "0000"})
+    assert d["disarmed"] is False
+    assert d["reason"] == "invalid PIN"
+
+
+def test_disarm_malformed_pin_rejected(server):
+    status, d = _post_json(server, "/api/disarm", {"pin": "12"})
+    assert d["disarmed"] is False
+
+
 def test_path_traversal_blocked(server):
     assert _expect_http_error(server, "/../server.py") in (403, 404)

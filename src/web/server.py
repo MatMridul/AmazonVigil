@@ -29,12 +29,17 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from src.core.cad_dispatcher import verify_disarm_pin
 from src.pipeline.ingest import DemoAdapter, VigilPipeline
 from src.simulator.scenario_runner import load_scenarios
 
 _STATIC_DIR = Path(__file__).with_name("static")
 _HOST = "127.0.0.1"
 _DEFAULT_PORT = 5176
+
+# Demo disarm PIN (UX spec [CANCEL WITH PIN 1-2-3-4]). In a live deployment this
+# comes from the resident's secret store, never a literal — see DR-09.
+_DEMO_DISARM_PIN = "1234"
 
 # Static descriptors for the mesh panel. Honest real-vs-MODELED status per node:
 # the console shows which organs are live-capable and which are MODELED here.
@@ -97,6 +102,22 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _json(self, code: int, obj) -> None:
         self._send(code, json.dumps(obj).encode("utf-8"), "application/json; charset=utf-8")
+
+    def do_POST(self) -> None:
+        path = urlparse(self.path).path
+        if path != "/api/disarm":
+            self._json(404, {"error": "not found"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length) if length else b"{}"
+            pin = str(json.loads(body or b"{}").get("pin", ""))
+        except Exception:
+            self._json(400, {"error": "bad request"})
+            return
+        # Real verification through the actual CAD dispatcher function.
+        ok = verify_disarm_pin(pin, _DEMO_DISARM_PIN)
+        self._json(200, {"disarmed": ok, "reason": "" if ok else "invalid PIN"})
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
