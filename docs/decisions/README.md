@@ -17,6 +17,7 @@ one, how to write it, and the immutability rule.
 | [DR-05](DR-05-single-process-tests.md) | Single-Process Test Execution Under Host RAM Pressure | Accepted |
 | [DR-06](DR-06-pin-mcp-v1-major.md) | Pin `mcp` to the v1 Major (`<2.0.0`) | Accepted |
 | [DR-07](DR-07-phase-3-state-machine.md) | Phase 3 Deterministic State Machine & CAD Staging Design | Accepted |
+| [DR-08](DR-08-phase-8-scenario-simulator.md) | Phase 8 Scenario Simulator — Deterministic Edge Path | Accepted |
 
 ## Quick rules
 
