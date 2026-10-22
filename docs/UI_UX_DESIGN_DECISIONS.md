@@ -11,16 +11,16 @@
 
 | ID | Decision Focus | Status | Locked Choice / Summary |
 | :---: | :--- | :---: | :--- |
-| **DR-01** | Visual Tone & Crisis Psychology | **LOCKED** | High-End Architectural Ambient; "The Active Protector" Model |
-| **DR-02** | Hero Object & Family Privacy Model | **LOCKED** | Sanctuary State Capsule; Multi-Entity Zero-Trace Arrival |
-| **DR-03** | 10-Foot Living Room Display (Fire TV) | **LOCKED** | Combinatorial Matrix; Headless Daemon; Bundled Offline Audio Library |
-| **DR-04** | Wearable Interface & Haptics (Bee) | **LOCKED** | Dual-Tier Hardware Contract (Screenless Bee vs Apple Watch); 6s Overdrive; 30s Dispatch Countdown |
-| **DR-05** | Acoustic & Voice Persona (Alexa+) | **LOCKED** | Low-Frequency Whisper Mode; Hierarchical Day/Night Deception Logic |
-| **DR-06** | Smartphone Node, Network Resilience & RBAC | **LOCKED** | Contained Critical Alerts; Local Hardening on Network Loss; 3-Tier Household RBAC |
+| **UX-01** | Visual Tone & Crisis Psychology | **LOCKED** | High-End Architectural Ambient; "The Active Protector" Model |
+| **UX-02** | Hero Object & Family Privacy Model | **LOCKED** | Sanctuary State Capsule; Multi-Entity Zero-Trace Arrival |
+| **UX-03** | 10-Foot Living Room Display (Fire TV) | **LOCKED** | Combinatorial Matrix; Headless Daemon; Bundled Offline Audio Library |
+| **UX-04** | Wearable Interface & Haptics (Bee) | **LOCKED** | Dual-Tier Hardware Contract (Screenless Bee vs Apple Watch); 6s Overdrive; 30s Dispatch Countdown |
+| **UX-05** | Acoustic & Voice Persona (Alexa+) | **LOCKED** | Low-Frequency Whisper Mode; Hierarchical Day/Night Deception Logic |
+| **UX-06** | Smartphone Node, Network Resilience & RBAC | **LOCKED** | Contained Critical Alerts; Local Hardening on Network Loss; 3-Tier Household RBAC |
 
 ---
 
-## DR-01: Visual Tone, Aesthetic Direction & Crisis Psychology
+## UX-01: Visual Tone, Aesthetic Direction & Crisis Psychology
 
 ### 1. Context & Problem
 Security interfaces frequently fail in one of two extremes: either they resemble cold, militaristic cyber-terminals that alienate non-technical family members, or they look like generic, bubbly SaaS templates with low-contrast gray text. Furthermore, when threats occur, typical alarms induce blinding panic by shouting for the user to resolve the problem.
@@ -37,7 +37,7 @@ Security interfaces frequently fail in one of two extremes: either they resemble
 
 ---
 
-## DR-02: Information Architecture, Hero Object & Anti-Surveillance Family Model
+## UX-02: Information Architecture, Hero Object & Anti-Surveillance Family Model
 
 ### 1. Context & Problem
 Smart home security apps often become accidental domestic surveillance tools—logging every movement, tracking which family member is in which room, and snitching on teenagers returning late. This breeds domestic friction and leads rebellious family members to tamper with or disable security hardware.
@@ -57,7 +57,7 @@ Smart home security apps often become accidental domestic surveillance tools—l
 
 ---
 
-## DR-03: 10-Foot Living Room Display & Headless Deterrence (Fire TV / Vega OS)
+## UX-03: 10-Foot Living Room Display & Headless Deterrence (Fire TV / Vega OS)
 
 ### 1. Context & Problem
 Traditional smart TV apps fail as security systems because users must manually open them from an app drawer. Moreover, sudden loud bluffs on a TV can cause resident panic attacks, stream buffering can cause failure, and Bluetooth headphones can swallow the deterrent audio.
@@ -84,7 +84,7 @@ $$\mathbf{FireTV}_{\text{Response}} = \mathbf{Power}_{\text{TV}} \times \mathbf{
 
 ---
 
-## DR-04: Wearable Interface, Bio-Grounding & Dual-Tier Hardware Model (Bee Wearable)
+## UX-04: Wearable Interface, Bio-Grounding & Dual-Tier Hardware Model (Bee Wearable)
 
 ### 1. Context & Hardware Reality
 The physical Bee Pioneer wearable is a minimalist, screenless "Zero-UI" clip with only a dual-mic array, an accelerometer, an LED, and a single physical button. Crucially, `bee-cli` is strictly a read-only memory and context tool without remote vibration endpoints, and the hardware lacks an optical PPG heart rate sensor. Sleep state is inferred from conversational recency (`bee now --json` >1h silence) combined with accelerometer stillness. In contrast, an Apple Watch running Bee software provides a high-resolution OLED display, HealthKit PPG heart-rate tracking, and Apple's precision Taptic Engine.
@@ -123,7 +123,7 @@ The physical Bee Pioneer wearable is a minimalist, screenless "Zero-UI" clip wit
 
 ---
 
-## DR-05: Acoustic Persona & Audio Architecture (Alexa+ & Ring Intercom)
+## UX-05: Acoustic Persona & Audio Architecture (Alexa+ & Ring Intercom)
 
 ### 1. Context & Problem
 Commercial voice assistants sound cheerful, overly conversational, and apologetic (*"Hi there! I'm sorry, but I see motion at the door..."*). In a real defense system, this sounds absurd and undermines authority. Additionally, high-frequency audio from bedroom speakers can bleed outside, alerting intruders to the resident's location.
@@ -149,7 +149,7 @@ To prevent overconfident facial recognition failures from ruining user experienc
 
 ---
 
-## DR-06: Smartphone Node, Network Resilience & Household RBAC
+## UX-06: Smartphone Node, Network Resilience & Household RBAC
 
 ### 1. Context & Problem
 The smartphone is the resident's most powerful personal computer, but smart security systems often mishandle it—either spamming annoying push notifications that get tuned out, or blindly calling emergency services when home internet drops, causing catastrophic false alarm rates.
