@@ -19,6 +19,7 @@ one, how to write it, and the immutability rule.
 | [DR-07](DR-07-phase-3-state-machine.md) | Phase 3 Deterministic State Machine & CAD Staging Design | Accepted |
 | [DR-08](DR-08-phase-8-scenario-simulator.md) | Phase 8 Scenario Simulator — Deterministic Edge Path | Accepted |
 | [DR-09](DR-09-smartphone-mesh-organ.md) | Smartphone as a First-Class Mesh Organ | Accepted |
+| [DR-10](DR-10-alexa-mcp-eligibility.md) | Alexa+ MCP Server as the Primary-Track Eligibility Code Path | Accepted |
 
 ## Namespace boundary: `DR-*` vs `UX-*`
 
