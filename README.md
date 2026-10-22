@@ -27,8 +27,22 @@ Instead of sending passive smartphone notifications that get ignored when reside
 
 * 📖 **[Master System Specification](SPEC.md)** — Mathematical sensor triad formulation, the 10-Scenario baseline matrix, and the 14-Edge-Case Degraded Mode Protocol (DMP).
 * 📋 **[Implementation Tasks & Roadmap](tasks.md)** — Phase-by-phase execution plan for autonomous agents and developers.
-* ☁️ **[AWS Integration Guide](docs/AWS_INTEGRATION.md)** — Amazon Bedrock and Kiro Crew architecture for the AWS Builder Challenge.
-* 🛠️ **[Developer Friction Log](docs/FRICTION_LOG.md)** — Tooling telemetry and feedback for the Amazon developer ecosystem (+10% judging bonus).
+* 🧭 **[Decision Records](docs/decisions/)** — `DR-00` … `DR-10`, the durable architecture decisions (spec authority, state machine, MCP eligibility, smartphone mesh organ). Product/UI decisions live in **[UI/UX Decisions](docs/UI_UX_DESIGN_DECISIONS.md)** (`UX-01` … `UX-06`).
+* 🛠️ **[Developer Friction Log](docs/FRICTION_LOG.md)** — Tooling feedback for the Amazon developer ecosystem (+10% judging bonus).
+
+---
+
+## Mesh Nodes — real vs. MODELED (honesty split)
+
+Every integration is coded to the **real** vendor interface and runs **device-optional**: live with credentials/hardware, clearly-badged simulated mode without. Nothing fabricates a live feed.
+
+| Organ | Role | Status | How it runs |
+| :-- | :-- | :-- | :-- |
+| **Alexa+ (MCP)** | incident commander / brain | **REAL** | `src/server.py` — official `mcp` SDK, 8 tools over Streamable HTTP (spec 2025-11-25+). Live with an Echo + linked Alexa+ account. |
+| **Ring** | perimeter eyes/ears | **REAL API** | `src/adapters/ring_adapter.py` — Bearer-token auth, HMAC webhook verify, WHEP WebRTC. Simulated without a token. |
+| **Fire TV** | deterrence actuator | **REAL (sideload)** | `src/web/static/firetv.html` surface + adapter logic. Live on a Fire TV Stick. |
+| **Phone** | human CAD authorization | **REAL** | `src/web/static/phone.html` — renders on any Android/iOS browser (Samsung A35 tested). |
+| **Bee** | resident bio-state | **MODELED** | `src/adapters/bee_adapter.py` — coded to the real `@beeai/cli` contract, but **no Bee device/data**, so MODELED. Vigil does **not** claim the Bee track. |
 
 ---
 
@@ -64,23 +78,45 @@ Instead of sending passive smartphone notifications that get ignored when reside
 
 ## Quickstart
 
+Vigil runs **fully offline** out of the box — the deterministic engine and all
+three console surfaces work with **no AWS account and no devices**. Credentials
+and hardware only upgrade MODELED/simulated nodes to live.
+
 ### Prerequisites
 * Python 3.11+
 * `uv` package manager (`pip install uv`)
-* AWS credentials with Amazon Bedrock access (`anthropic.claude-3-5-sonnet-20241022`)
+* *(optional)* AWS credentials with Amazon Bedrock access, for live multimodal
+  reasoning — the offline deterministic path needs none.
 
-### Installation & Test Suite
+### Install & test
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/vigil.git
-cd vigil
-
-# Install dependencies with uv
-uv sync
-
-# Run the full 10-Scenario and 14-Edge-Case resilience test suite
-uv run pytest tests/ -v
+git clone https://github.com/MatMridul/AmazonVigil.git
+cd AmazonVigil
+uv sync --extra dev        # dev group carries pytest + pytest-asyncio
+uv run pytest -q           # full suite, deterministic, offline (150 passing)
 ```
+*(Runtime-only install is `uv sync`; the `--extra dev` group adds the test tools.)*
+
+### Run the scenario engine (no deps beyond uv sync)
+```bash
+uv run python -m src.simulator.scenario_runner --scenario 06   # one scenario
+uv run python -m src.simulator.scenario_runner --all           # all 10 baselines
+```
+
+### Run the Web Console (three hero surfaces)
+```bash
+uv run python -m src.web.server            # http://127.0.0.1:5176
+```
+Then open the console and use the Surface Switcher:
+* **Mission Control** (`/`) — the brain correlating the mesh (Φ-vector, Bedrock attribution, Fire TV deterrence)
+* **Nightstand Phone** (`/phone.html`) — the human crisis surface: staged CAD manifest, 10s countdown, PIN-disarm
+* **Fire TV** (`/firetv.html`) — the 10-foot deterrence display
+
+### Run the Alexa+ MCP server (primary track)
+```bash
+uv run python -m src.server                # Streamable HTTP MCP endpoint
+```
+Link the endpoint to an Alexa+ developer account to drive it from a real Echo.
 
 ---
 
