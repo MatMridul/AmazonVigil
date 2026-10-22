@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vigil — Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/vigil.css" />
+</head>
+<body>
+  <header>
+    <div class="cell"><span class="brand">VIGIL</span></div>
+    <div class="cell"><span class="k">Node</span><span class="val">PRIMARY_RESIDENCE</span></div>
+    <div class="cell"><span class="k">Mode</span><span class="val" id="modeval">—</span></div>
+    <div class="cell grow"><span class="k">State</span><span class="statusflag" id="stateflag">◆ CONNECTING…</span></div>
+    <div class="cell"><span class="k">Operator</span><span class="val">M.LIN / ADMIN</span></div>
+  </header>
+
+  <!-- scenario selector (populated from /api/scenarios) -->
+  <div class="selector" id="selector"></div>
+
+  <!-- READOUT -->
+  <div class="readout">
+    <div class="readline">
+      <div>
+        <div class="bigscore" id="score">—</div>
+        <div class="verdict k" id="verdict">—</div>
+      </div>
+      <div class="bars" id="bars"></div>
+    </div>
+  </div>
+
+  <main>
+    <!-- GUIDANCE (threat/dispatch only) -->
+    <div class="guidance">
+      <div class="hd" id="guidehd">▲ PERIMETER ALERT — ACTIVE PROTECTION IN PROGRESS</div>
+      <div class="msg" id="guidemsg">—</div>
+      <div class="acts" id="acts"></div>
+    </div>
+
+    <!-- CAMERA -->
+    <section class="module">
+      <div class="mhead"><span class="k" id="camlabel">CAM.00 — FRONT_PORCH</span><span class="idx" id="simbadge">—</span></div>
+      <div class="mbody">
+        <div class="cam">
+          <div class="crosshair"></div>
+          <div class="sim" id="simtag">SIM_FEED</div>
+          <div class="figure"></div>
+          <div class="ts" id="ts">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MESH / ATTRIBUTION -->
+    <section class="module">
+      <div class="mhead"><span class="k">MESH_TELEMETRY</span><span class="idx" id="meshcount">— nodes</span></div>
+      <div class="mbody">
+        <div id="meshnodes"></div>
+        <div id="attribution" style="margin-top:12px"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="switcher">
+    <a class="active" href="/">MISSION_CONTROL</a>
+    <a href="/phone.html">NIGHTSTAND_PHONE</a>
+    <a href="/firetv.html">FIRE_TV</a>
+  </div>
+
+<script src="/app.js"></script>
+</body>
+</html>
