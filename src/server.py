@@ -244,10 +244,55 @@ async def set_mesh_guard_profile(mode: str, duration_hours: Optional[int] = None
     return {"status": "profile_set", "mode": mode, "duration_hours": duration_hours}
 
 
+def build_asgi_app():
+    """Compose the MCP Streamable-HTTP app with Alexa+ OAuth discovery endpoints.
+
+    Serves, on the same ASGI app the MCP transport uses:
+      * GET /.well-known/oauth-protected-resource  -> PRM document (RFC 9728)
+      * GET /.well-known/oauth-authorization-server -> AS metadata (RFC 8414)
+    The MCP endpoint itself is unchanged, so a properly-formed MCP client still
+    initializes and lists tools exactly as before. These well-known documents are
+    what Alexa+ fetches during account linking to discover PKCE/S256 support.
+    """
+    from starlette.requests import Request
+    from starlette.responses import JSONResponse
+
+    from src.mcp_auth import default_server
+
+    auth = default_server()
+    app = mcp.streamable_http_app()
+
+    async def prm(_request: "Request") -> "JSONResponse":
+        return JSONResponse(auth.prm_document())
+
+    async def as_meta(_request: "Request") -> "JSONResponse":
+        return JSONResponse(auth.as_metadata())
+
+    app.router.add_route(
+        "/.well-known/oauth-protected-resource", prm, methods=["GET"]
+    )
+    app.router.add_route(
+        "/.well-known/oauth-authorization-server", as_meta, methods=["GET"]
+    )
+    return app
+
+
 def main() -> None:
-    """Run the FastMCP server over Streamable HTTP."""
+    """Run the FastMCP server over Streamable HTTP (MCP transport only)."""
     mcp.run(transport="streamable-http")
 
 
+def main_with_discovery() -> None:
+    """Run the composed app (MCP + OAuth discovery endpoints) via uvicorn."""
+    import uvicorn
+
+    uvicorn.run(build_asgi_app(), host=mcp.settings.host, port=mcp.settings.port)
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--with-discovery" in sys.argv:
+        main_with_discovery()
+    else:
+        main()
