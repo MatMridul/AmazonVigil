@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vigil — Comp A · Architectural Ambient</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* SPEC §1.1 canonical tokens */
+    --bg-obsidian:#090A0B;
+    --surface-volcano:#141618;
+    --surface-elevated:#1E2124;
+    --border-subtle:#2B3035;
+    --border-focus:#4A525A;
+    --text-primary:#F2F4F7;
+    --text-muted:#9AA2AB;
+    --text-dim:#636B74;
+    --accent-amber:#F59E0B;
+    --accent-cyan:#06B6D4;
+    --accent-crimson:#EF4444;
+    --accent-emerald:#10B981;
+    --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp6:24px; --sp8:32px;
+    --r-xl:12px; --r-lg:8px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body {
+    background:var(--bg-obsidian);
+    color:var(--text-primary);
+    font-family:var(--font-ui);
+    font-size:15px; line-height:1.5;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono { font-family:var(--font-mono); font-feature-settings:"tnum" 1; }
+  .label { font-size:12px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+
+  /* ---- top bar ---- */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:var(--sp4) var(--sp6);
+    border-bottom:1px solid var(--border-subtle);
+    background:var(--surface-volcano);
+  }
+  .brand { display:flex; align-items:center; gap:var(--sp4); }
+  .wordmark { font-weight:700; letter-spacing:.14em; font-size:15px; }
+  .residence { font-size:12px; letter-spacing:.08em; color:var(--text-muted); padding:3px 10px; border:1px solid var(--border-subtle); border-radius:var(--r-lg); }
+  .topright { display:flex; align-items:center; gap:var(--sp4); font-size:13px; color:var(--text-muted); }
+  .sysdot { width:8px; height:8px; border-radius:50%; background:var(--accent-emerald); box-shadow:0 0 0 3px rgba(16,185,129,.15); }
+  body.threat .sysdot { background:var(--accent-amber); box-shadow:0 0 0 3px rgba(245,158,11,.18); }
+
+  /* ---- layout ---- */
+  .stage { padding:var(--sp6); max-width:1280px; margin:0 auto; display:flex; flex-direction:column; gap:var(--sp6); }
+
+  /* ---- sanctuary capsule ---- */
+  .capsule {
+    border:1px solid var(--border-subtle);
+    border-radius:var(--r-xl);
+    background:
+      radial-gradient(120% 140% at 50% -20%, rgba(16,185,129,.06), transparent 60%),
+      var(--surface-volcano);
+    padding:var(--sp8) var(--sp6);
+    text-align:center;
+    transition:background .8s var(--ease), border-color .8s var(--ease);
+    position:relative; overflow:hidden;
+  }
+  body.threat .capsule {
+    background:
+      radial-gradient(130% 150% at 50% -20%, rgba(245,158,11,.10), transparent 62%),
+      var(--surface-volcano);
+    border-color:rgba(245,158,11,.35);
+  }
+  .capsule-eyebrow { display:inline-flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-emerald); font-weight:600; }
+  body.threat .capsule-eyebrow { color:var(--accent-amber); }
+  .pulse { width:9px; height:9px; border-radius:50%; background:currentColor; animation:breathe 3.4s var(--ease) infinite; }
+  @keyframes breathe { 0%,100%{opacity:.45; transform:scale(.85);} 50%{opacity:1; transform:scale(1.15);} }
+  .capsule h1 { font-size:32px; line-height:1.1; font-weight:600; margin:var(--sp4) 0 var(--sp2); letter-spacing:-.01em; }
+  .capsule .sub { color:var(--text-muted); font-size:15px; }
+  .capsule .guidance { display:none; color:var(--text-primary); font-size:15px; line-height:1.6; max-width:640px; margin:var(--sp3) auto 0; }
+  body.threat .capsule .guidance { display:block; }
+  body.threat .capsule .sub { display:none; }
+  .chips { display:flex; gap:var(--sp3); justify-content:center; flex-wrap:wrap; margin-top:var(--sp6); }
+  .chip { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); padding:7px 14px; border:1px solid var(--border-subtle); border-radius:999px; background:var(--bg-obsidian); }
+  .chip .dot { width:7px; height:7px; border-radius:50%; background:var(--accent-emerald); }
+  .capsule-actions { display:none; gap:var(--sp3); justify-content:center; flex-wrap:wrap; margin-top:var(--sp6); }
+  body.threat .capsule-actions { display:flex; }
+  .btn { font-family:var(--font-ui); font-size:13px; font-weight:600; letter-spacing:.02em; padding:11px 18px; border-radius:var(--r-lg); border:1px solid var(--border-subtle); background:var(--surface-elevated); color:var(--text-primary); cursor:pointer; transition:all .18s var(--ease); }
+  .btn:hover { border-color:var(--border-focus); transform:translateY(-1px); }
+  .btn.hold { border-color:rgba(245,158,11,.5); color:var(--accent-amber); }
+  .btn.danger { border-color:rgba(239,68,68,.5); color:var(--accent-crimson); }
+  .btn.danger:hover { background:rgba(239,68,68,.08); }
+
+  /* ---- grid row ---- */
+  .row { display:grid; grid-template-columns:1.3fr 1fr; gap:var(--sp6); }
+  .panel { border:1px solid var(--border-subtle); border-radius:var(--r-xl); background:var(--surface-volcano); overflow:hidden; }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; padding:var(--sp3) var(--sp4); border-bottom:1px solid var(--border-subtle); }
+  .panel-body { padding:var(--sp4); }
+
+  /* camera */
+  .cam { aspect-ratio:16/9; position:relative; background:linear-gradient(135deg,#0d0f11,#17191c); display:flex; align-items:center; justify-content:center; }
+  .cam .scan { position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.012) 3px,rgba(255,255,255,.012) 4px); }
+  .cam-figure { width:60px; height:120px; border-radius:40% 40% 10% 10%; background:#1d2024; opacity:.5; transition:all .6s var(--ease); }
+  body.threat .cam { background:linear-gradient(135deg,#140f0c,#1c1511); }
+  body.threat .cam-figure { background:#2a211a; opacity:.8; }
+  .simbadge { position:absolute; top:10px; left:10px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); background:rgba(9,10,11,.7); border:1px solid var(--border-subtle); padding:3px 8px; border-radius:6px; }
+  .bbox { position:absolute; display:none; border:1.5px solid var(--accent-amber); border-radius:3px; left:42%; top:24%; width:16%; height:52%; box-shadow:0 0 0 1px rgba(0,0,0,.4); }
+  .bbox::after { content:'MASKED HUMAN · 0.94'; position:absolute; top:-20px; left:-1px; font-family:var(--font-mono); font-size:10px; letter-spacing:.04em; color:var(--accent-amber); background:rgba(9,10,11,.85); padding:2px 5px; border-radius:3px; white-space:nowrap; }
+  body.threat .bbox { display:block; animation:lock .5s var(--ease); }
+  @keyframes lock { from{opacity:0; transform:scale(1.4);} to{opacity:1; transform:scale(1);} }
+  .cam-foot { display:flex; gap:var(--sp2); padding:var(--sp3) var(--sp4); border-top:1px solid var(--border-subtle); }
+
+  /* telemetry / attribution */
+  .teleblock { padding:var(--sp3) 0; border-bottom:1px solid var(--border-subtle); }
+  .teleblock:last-child { border-bottom:0; }
+  .tele-name { font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+  .tele-row { display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); }
+  .phi { display:flex; gap:12px; margin-top:6px; font-size:12px; }
+  .phi span b { color:var(--accent-cyan); font-weight:500; }
+  body.threat .phi .vdrop b { color:var(--accent-crimson); }
+
+  .attr { display:none; }
+  body.threat .attr { display:block; }
+  .nominal-telem { display:block; }
+  body.threat .nominal-telem { display:none; }
+  .scoreline { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--sp3); }
+  .score { font-family:var(--font-mono); font-size:30px; font-weight:700; color:var(--accent-amber); }
+  .scorebar { display:flex; align-items:center; gap:10px; margin:var(--sp2) 0 var(--sp4); }
+  .scorebar .track { flex:1; height:6px; background:var(--surface-elevated); border-radius:3px; overflow:hidden; }
+  .scorebar .fill { height:100%; width:88%; background:linear-gradient(90deg,var(--accent-cyan),var(--accent-amber)); border-radius:3px; transform-origin:left; animation:grow 1s var(--ease); }
+  @keyframes grow { from{transform:scaleX(0);} to{transform:scaleX(1);} }
+  .attr-item { display:flex; gap:10px; padding:7px 0; font-size:13px; border-bottom:1px solid var(--border-subtle); }
+  .attr-item:last-child { border-bottom:0; }
+  .attr-item .k { color:var(--text-dim); width:84px; flex-shrink:0; font-size:12px; letter-spacing:.04em; text-transform:uppercase; }
+  .attr-item .v { color:var(--text-muted); }
+  .dwell { font-family:var(--font-mono); color:var(--accent-amber); }
+
+  /* digest */
+  .digest table { width:100%; border-collapse:collapse; font-size:13px; }
+  .digest th { text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim); font-weight:600; padding:var(--sp2) var(--sp3); border-bottom:1px solid var(--border-subtle); }
+  .digest td { padding:var(--sp3); border-bottom:1px solid var(--border-subtle); color:var(--text-muted); }
+  .digest td:first-child { color:var(--text-dim); }
+  .digest tr:last-child td { border-bottom:0; }
+  .tag { font-family:var(--font-mono); font-size:11px; padding:2px 7px; border-radius:5px; }
+  .tag.safe { color:var(--accent-emerald); background:rgba(16,185,129,.1); }
+  .tag.sys { color:var(--accent-cyan); background:rgba(6,182,212,.1); }
+  .tag.hh { color:var(--text-muted); background:var(--surface-elevated); }
+
+  /* scenario switch */
+  .switcher { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; gap:6px; background:var(--surface-elevated); border:1px solid var(--border-focus); border-radius:999px; padding:6px; box-shadow:0 12px 32px rgba(0,0,0,.6); z-index:50; }
+  .switcher button { font-family:var(--font-ui); font-size:12px; font-weight:600; letter-spacing:.03em; padding:8px 16px; border-radius:999px; border:0; background:transparent; color:var(--text-muted); cursor:pointer; transition:all .2s var(--ease); }
+  .switcher button.active { background:var(--text-primary); color:var(--bg-obsidian); }
+
+  @media (max-width:900px){ .row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="wordmark">VIGIL</span>
+      <span class="residence">PRIMARY RESIDENCE</span>
+    </div>
+    <div class="topright">
+      <span class="statetext">All systems nominal</span>
+      <span>Maya Lin · Admin</span>
+      <span class="sysdot"></span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <!-- SANCTUARY CAPSULE -->
+    <section class="capsule">
+      <div class="capsule-eyebrow"><span class="pulse"></span><span class="eyebrow-text">Perimeter Secure</span></div>
+      <h1 class="headline">All grounds nominal</h1>
+      <p class="sub">Front entrance monitored · External perimeter quiet</p>
+      <p class="guidance">Unknown individual manipulating the front entryway. Perimeter alert active and Fire&nbsp;TV living-room deterrence is running simulated occupancy. Emergency&nbsp;CAD manifest is staged. Please remain inside.</p>
+      <div class="chips">
+        <span class="chip"><span class="dot"></span>Front Door · Active</span>
+        <span class="chip"><span class="dot"></span>Night Sentry · Armed</span>
+        <span class="chip"><span class="dot"></span>Household · 3/3 on premises</span>
+      </div>
+      <div class="capsule-actions">
+        <button class="btn hold">Do not open door</button>
+        <button class="btn">Speak through intercom</button>
+        <button class="btn">Cancel alarm (false)</button>
+        <button class="btn danger">Dispatch 911</button>
+      </div>
+    </section>
+
+    <!-- CAMERA + ATTRIBUTION -->
+    <div class="row">
+      <section class="panel">
+        <div class="panel-head">
+          <span class="label camtitle">Live Perimeter Eye · Ring</span>
+          <span class="label mono" style="color:var(--text-dim)">Front Porch</span>
+        </div>
+        <div class="cam">
+          <div class="scan"></div>
+          <div class="simbadge">● Simulated Feed</div>
+          <div class="cam-figure"></div>
+          <div class="bbox"></div>
+        </div>
+        <div class="cam-foot">
+          <button class="btn">Talk via intercom</button>
+          <button class="btn">Expand stream</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <span class="label telehead">Hardware Mesh Telemetry</span>
+          <span class="label attrhead" style="display:none; color:var(--accent-amber)">Threat Attribution · Bedrock</span>
+        </div>
+        <div class="panel-body">
+          <!-- nominal -->
+          <div class="nominal-telem">
+            <div class="teleblock">
+              <div class="tele-name">Ring Pro 2</div>
+              <div class="tele-row"><span>Battery: Mains AC</span><span class="mono">Wi-Fi −48dBm</span></div>
+              <div class="phi"><span>Φ_M <b>1.0</b></span><span class="vdrop">Φ_V <b>1.0</b></span><span>Φ_A <b>1.0</b></span></div>
+            </div>
+            <div class="teleblock">
+              <div class="tele-name">Bee Wearable · Maya</div>
+              <div class="tele-row"><span>Asleep · quiet &gt;3h</span><span class="mono">Whisper armed</span></div>
+            </div>
+            <div class="teleblock">
+              <div class="tele-name">Fire TV · Living Room</div>
+              <div class="tele-row"><span>Standby · HDMI-CEC ready</span><span class="mono">AAC bundle ready</span></div>
+            </div>
+            <div class="teleblock">
+              <div class="tele-name">Echo Bedroom · Alexa+</div>
+              <div class="tele-row"><span>Low-freq whisper ready</span><span class="mono">SSML</span></div>
+            </div>
+          </div>
+          <!-- threat attribution -->
+          <div class="attr">
+            <div class="scoreline"><span class="label">Threat Score</span><span class="score">0.88</span></div>
+            <div class="scorebar"><div class="track"><div class="fill"></div></div><span class="mono" style="font-size:12px;color:var(--accent-amber)">L2</span></div>
+            <div class="attr-item"><span class="k">Visual</span><span class="v">Hooded subject · crowbar in frame</span></div>
+            <div class="attr-item"><span class="k">Audio</span><span class="v">Metal-on-metal prying · 3.2 kHz</span></div>
+            <div class="attr-item"><span class="k">Resident</span><span class="v">Maya asleep · Echo whispered</span></div>
+            <div class="attr-item"><span class="k">Deterrent</span><span class="v">Fire TV "Home Alone" · 75% vol</span></div>
+            <div class="attr-item"><span class="k">Dwell</span><span class="v dwell">22s · exceeded 15s threshold</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- DIGEST -->
+    <section class="panel digest">
+      <div class="panel-head"><span class="label">Perimeter Activity Digest · External boundary only</span></div>
+      <table>
+        <thead><tr><th>Time</th><th>Event</th><th>Classification</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">11:15:14 PM</td><td>Parcel delivery at porch</td><td><span class="tag safe">L1 SAFE COURIER · 12s</span></td><td>Logged (muted)</td></tr>
+          <tr><td class="mono">10:45:00 PM</td><td>Night Sentry auto-engaged</td><td><span class="tag sys">STATE TRANSITION</span></td><td>Armed sentry</td></tr>
+          <tr><td class="mono">6:30:22 PM</td><td>Front door accessed</td><td><span class="tag hh">VERIFIED · Jordan Lin</span></td><td>Zero-trace</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="switcher">
+    <button class="active" data-state="nominal">Nominal Ambient</button>
+    <button data-state="threat">Scenario 06 · Prowler (L2)</button>
+  </div>
+
+<script>
+  const buttons = document.querySelectorAll('.switcher button');
+  const statetext = document.querySelector('.statetext');
+  const eyebrow = document.querySelector('.eyebrow-text');
+  const headline = document.querySelector('.headline');
+  const camtitle = document.querySelector('.camtitle');
+  const telehead = document.querySelector('.telehead');
+  const attrhead = document.querySelector('.attrhead');
+  function setState(s){
+    document.body.classList.toggle('threat', s==='threat');
+    buttons.forEach(b=>b.classList.toggle('active', b.dataset.state===s));
+    if(s==='threat'){
+      statetext.textContent='● Active Defense Running';
+      eyebrow.textContent='Perimeter Alert · Active Protection';
+      headline.textContent='Active protection in progress';
+      camtitle.textContent='Live Breach Stream · Ring';
+      telehead.style.display='none'; attrhead.style.display='inline';
+    } else {
+      statetext.textContent='All systems nominal';
+      eyebrow.textContent='Perimeter Secure';
+      headline.textContent='All grounds nominal';
+      camtitle.textContent='Live Perimeter Eye · Ring';
+      telehead.style.display='inline'; attrhead.style.display='none';
+    }
+  }
+  buttons.forEach(b=>b.addEventListener('click',()=>setState(b.dataset.state)));
+</script>
+</body>
+</html>
