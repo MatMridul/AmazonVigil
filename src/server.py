@@ -11,6 +11,7 @@ effects are simulated in Phase 1 (DR-04).
 
 from __future__ import annotations
 
+import os
 import time
 from threading import Lock
 from typing import Optional
@@ -57,7 +58,33 @@ class IdempotencyCache:
 # --------------------------------------------------------------------------- #
 # Server + shared singletons
 # --------------------------------------------------------------------------- #
-mcp = FastMCP("amazon-vigil")
+def _build_transport_security():
+    """Allow-list the public tunnel/deploy host alongside localhost.
+
+    DNS-rebinding protection stays ON (MCP spec); we explicitly add the public
+    host from VIGIL_PUBLIC_URL so Alexa+ / a tunneled client is accepted while
+    arbitrary foreign Hosts are still rejected. Without this, a tunneled request
+    hits the default localhost-only allow-list and the transport returns 421.
+    """
+    from urllib.parse import urlparse
+
+    from mcp.server.transport_security import TransportSecuritySettings
+
+    allowed_hosts = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+    allowed_origins = ["http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*"]
+    public = os.environ.get("VIGIL_PUBLIC_URL", "").strip()
+    if public:
+        host = urlparse(public).netloc or public
+        allowed_hosts += [host, f"{host}:*"]
+        allowed_origins += [f"https://{host}", f"https://{host}:*"]
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+
+
+mcp = FastMCP("amazon-vigil", transport_security=_build_transport_security())
 _dedup = IdempotencyCache()
 _evaluator = BedrockThreatEvaluator()
 
