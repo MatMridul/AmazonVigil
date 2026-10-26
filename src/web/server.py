@@ -25,11 +25,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from src.core.cad_dispatcher import verify_disarm_pin
 from src.pipeline.ingest import DemoAdapter, VigilPipeline
 from src.simulator.scenario_runner import load_scenarios
 
@@ -37,9 +37,18 @@ _STATIC_DIR = Path(__file__).with_name("static")
 _HOST = "127.0.0.1"
 _DEFAULT_PORT = 5176
 
-# Demo disarm PIN (UX spec [CANCEL WITH PIN 1-2-3-4]). In a live deployment this
-# comes from the resident's secret store, never a literal — see DR-09.
-_DEMO_DISARM_PIN = "1234"
+# Disarm PIN for the localhost console. SEC.2/SEC.3: verified by VALUE against a
+# stored HASH, never a literal. Overridable via VIGIL_DISARM_PIN_HASH /
+# VIGIL_DISARM_PIN; falls back to a hashed dev PIN only for the offline demo
+# surface (this server binds 127.0.0.1 — not an internet-facing secret).
+from src.mcp_auth import PinVerifier, hash_pin
+
+_pin_verifier = PinVerifier(
+    pin_hash=(
+        os.environ.get("VIGIL_DISARM_PIN_HASH", "").strip()
+        or hash_pin(os.environ.get("VIGIL_DISARM_PIN", "1234").strip())
+    )
+)
 
 # Static descriptors for the mesh panel. Honest real-vs-MODELED status per node:
 # the console shows which organs are live-capable and which are MODELED here.
@@ -115,8 +124,11 @@ class _Handler(BaseHTTPRequestHandler):
         except Exception:
             self._json(400, {"error": "bad request"})
             return
-        # Real verification through the actual CAD dispatcher function.
-        ok = verify_disarm_pin(pin, _DEMO_DISARM_PIN)
+        # SEC.2 — value-checked against a stored hash, with brute-force lockout.
+        if _pin_verifier.is_locked():
+            self._json(200, {"disarmed": False, "reason": "locked out — too many attempts"})
+            return
+        ok = _pin_verifier.verify(pin)
         self._json(200, {"disarmed": ok, "reason": "" if ok else "invalid PIN"})
 
     def do_GET(self) -> None:

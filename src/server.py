@@ -88,6 +88,12 @@ mcp = FastMCP("amazon-vigil", transport_security=_build_transport_security())
 _dedup = IdempotencyCache()
 _evaluator = BedrockThreatEvaluator()
 
+# SEC.2 — value-checked, lockout-protected disarm-PIN verifier (holds only a
+# hash, loaded from config; never a literal PIN).
+from src.mcp_auth import default_pin_verifier
+
+_pin_verifier = default_pin_verifier()
+
 # Minimal in-memory incident store for Phase 1 reasoning/disarm tools.
 _incidents: dict[str, dict] = {}
 
@@ -225,11 +231,17 @@ async def format_emergency_cad_packet(incident_id: str) -> dict:
 # --------------------------------------------------------------------------- #
 @mcp.tool()
 async def disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict:
-    """Cancel CAD staging + disarm perimeter on verified 4-digit PIN."""
+    """Cancel CAD staging + disarm perimeter on a VERIFIED disarm PIN.
+
+    SEC.2: the PIN is checked by VALUE against a stored hash (never by format
+    alone), with brute-force lockout. A wrong 4-digit guess does NOT disarm.
+    """
     if not incident_id:
         raise ValueError("incident_id is required")
-    if not (disarm_pin.isdigit() and len(disarm_pin) == 4):
-        return {"status": "rejected", "reason": "invalid_pin_format", "incident_id": incident_id}
+    if _pin_verifier.is_locked():
+        return {"status": "rejected", "reason": "locked_out", "incident_id": incident_id}
+    if not _pin_verifier.verify(disarm_pin):
+        return {"status": "rejected", "reason": "invalid_pin", "incident_id": incident_id}
     _incidents.setdefault(incident_id, {})["disarmed"] = True
     return {"status": "disarmed", "incident_id": incident_id}
 
@@ -284,7 +296,7 @@ def build_asgi_app():
     from starlette.requests import Request
     from starlette.responses import JSONResponse
 
-    from src.mcp_auth import default_server
+    from src.mcp_auth import BearerAuthMiddleware, auth_enforced, default_server
 
     auth = default_server()
     app = mcp.streamable_http_app()
@@ -295,12 +307,21 @@ def build_asgi_app():
     async def as_meta(_request: "Request") -> "JSONResponse":
         return JSONResponse(auth.as_metadata())
 
+    async def healthz(_request: "Request") -> "JSONResponse":
+        return JSONResponse({"status": "ok", "auth_enforced": auth_enforced()})
+
     app.router.add_route(
         "/.well-known/oauth-protected-resource", prm, methods=["GET"]
     )
     app.router.add_route(
         "/.well-known/oauth-authorization-server", as_meta, methods=["GET"]
     )
+    app.router.add_route("/healthz", healthz, methods=["GET"])
+
+    # SEC.1 — deny-by-default bearer enforcement at the transport layer. Every
+    # request except discovery/health must carry a valid Bearer, so no tool can
+    # be reached unauthenticated. Added last so it wraps the whole app.
+    app.add_middleware(BearerAuthMiddleware, server=auth)
     return app
 
 

@@ -207,3 +207,145 @@ def default_server() -> AuthorizationServer:
         "VIGIL_PUBLIC_URL", "https://thermal-entire-sandbank.ngrok-free.dev"
     ).rstrip("/")
     return AuthorizationServer(issuer=public, resource_uri=f"{public}/mcp")
+
+
+# --------------------------------------------------------------------------- #
+# SEC.1 — deny-by-default bearer enforcement for the MCP endpoint.
+# --------------------------------------------------------------------------- #
+# Paths that are intentionally public (discovery is fetched BEFORE a token
+# exists, and the health check must be unauthenticated). Everything else under
+# the MCP mount requires a valid Bearer token — enforced at the transport layer
+# so no tool can be reached unauthenticated, rather than relying on each of the
+# 8 tool bodies to remember to check (OWASP #1, the top AI-code failure mode).
+_PUBLIC_PREFIXES = (
+    "/.well-known/",
+    "/healthz",
+)
+
+# Enforcement is ON by default. Set VIGIL_AUTH_ENFORCE=0 ONLY for local offline
+# dev/tests against the in-memory AS; a field deployment must never set it.
+def auth_enforced() -> bool:
+    return os.environ.get("VIGIL_AUTH_ENFORCE", "1").strip() not in ("0", "false", "False")
+
+
+def _is_public_path(path: str) -> bool:
+    return any(path == p or path.startswith(p) for p in _PUBLIC_PREFIXES)
+
+
+class BearerAuthMiddleware:
+    """ASGI middleware enforcing a valid Bearer on every non-public request.
+
+    Deny-by-default: an unauthenticated call to the MCP endpoint (and thus any
+    tool) gets ``401`` before it ever reaches a tool body. Discovery and health
+    paths are explicitly allow-listed because they are fetched before a token
+    exists. The token is read ONLY from the Authorization header, never a query
+    string (per the Alexa+ checklist and OWASP crypto guidance).
+    """
+
+    def __init__(self, app, server: Optional[AuthorizationServer] = None) -> None:
+        self.app = app
+        self._server = server or default_server()
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http" or not auth_enforced():
+            await self.app(scope, receive, send)
+            return
+        path = scope.get("path", "")
+        if _is_public_path(path):
+            await self.app(scope, receive, send)
+            return
+        headers = {k.decode("latin-1").lower(): v.decode("latin-1")
+                   for k, v in scope.get("headers", [])}
+        if self._server.validate_bearer(headers.get("authorization")):
+            await self.app(scope, receive, send)
+            return
+        # 401 — no WWW-Authenticate header (Alexa+ lists it "not supported yet").
+        body = b'{"error":"unauthorized","error_description":"valid Bearer token required"}'
+        await send({
+            "type": "http.response.start",
+            "status": 401,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode("ascii")),
+            ],
+        })
+        await send({"type": "http.response.body", "body": body})
+
+
+# --------------------------------------------------------------------------- #
+# SEC.2/SEC.3 — stored-PIN verification with brute-force lockout.
+# --------------------------------------------------------------------------- #
+# The disarm PIN is verified by VALUE against a stored secret, never by format
+# alone, and the stored form is a hash (Argon2 in the field; a sha256 fallback
+# here keeps the module dependency-free for local dev — swapped in SEC.3). A
+# 4-digit space is only 10k combos, so attempts are rate-limited with lockout.
+_PIN_MAX_ATTEMPTS = 5
+_PIN_LOCKOUT_SECONDS = 300.0
+
+
+def hash_pin(pin: str, *, salt: Optional[str] = None) -> str:
+    """Hash a disarm PIN for storage. Never store the plaintext PIN.
+
+    Dev-grade salted SHA-256 so the module stays dependency-free; SEC.3 swaps
+    this for Argon2 (argon2-cffi) without changing callers.
+    """
+    s = salt or os.environ.get("VIGIL_PIN_SALT", "vigil-dev-salt")
+    return hashlib.sha256(f"{s}:{pin}".encode("utf-8")).hexdigest()
+
+
+@dataclass
+class PinVerifier:
+    """Value-checked, lockout-protected disarm-PIN verifier (SEC.2).
+
+    Holds only the HASH of the real PIN. Counts consecutive failures and locks
+    out for a cooldown after ``max_attempts``, defeating a trivial brute force
+    of the 10k 4-digit space.
+    """
+
+    pin_hash: str
+    max_attempts: int = _PIN_MAX_ATTEMPTS
+    lockout_seconds: float = _PIN_LOCKOUT_SECONDS
+    clock: "callable" = time.monotonic
+    _failures: int = 0
+    _locked_until: float = 0.0
+
+    def is_locked(self) -> bool:
+        return self.clock() < self._locked_until
+
+    def verify(self, pin: str) -> bool:
+        """True iff ``pin`` matches the stored hash and we are not locked out."""
+        if self.is_locked():
+            return False
+        if not (isinstance(pin, str) and pin.isdigit() and len(pin) == 4):
+            self._register_failure()
+            return False
+        ok = hmac.compare_digest(hash_pin(pin), self.pin_hash)
+        if ok:
+            self._failures = 0
+            return True
+        self._register_failure()
+        return False
+
+    def _register_failure(self) -> None:
+        self._failures += 1
+        if self._failures >= self.max_attempts:
+            self._locked_until = self.clock() + self.lockout_seconds
+            self._failures = 0
+
+
+def default_pin_verifier() -> PinVerifier:
+    """Build the disarm-PIN verifier from a stored hash (never a literal).
+
+    Reads VIGIL_DISARM_PIN_HASH (preferred). For local dev only, if a raw
+    VIGIL_DISARM_PIN is set it is hashed in-process so no plaintext is stored.
+    """
+    stored = os.environ.get("VIGIL_DISARM_PIN_HASH", "").strip()
+    if not stored:
+        raw = os.environ.get("VIGIL_DISARM_PIN", "").strip()
+        if raw:
+            stored = hash_pin(raw)
+    if not stored:
+        # No PIN configured: a verifier that rejects everything (fail-closed),
+        # never a default literal like "1234".
+        stored = hash_pin(secrets.token_hex(8))
+    return PinVerifier(pin_hash=stored)
