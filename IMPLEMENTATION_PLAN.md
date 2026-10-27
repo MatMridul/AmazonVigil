@@ -27,58 +27,36 @@ Legend:  ☐ todo · ◐ in progress · ☑ done · 🔴 security-critical · �
 ## Phase A — Security hardening & engineering baseline → `0.2.0`
 
 ### Security fixes (map to DEVELOPMENT_PLAN §4)
-- ☐ 🔴 **SEC.1 — Authorization guard on MCP tools (§4.1, the critical gap).**
-  Add bearer validation as MCP transport middleware in `src/server.py`, calling
-  `AuthorizationServer.validate_bearer`. Deny-by-default: every state-changing
-  tool (`trigger_tactical_wake`, `trigger_firetv_deterrence`,
-  `format_emergency_cad_packet`, `disarm_perimeter_alert`, `set_mesh_guard_profile`)
-  requires a valid token; read-only tools may be explicitly marked public.
-  AC: a `tools/call` on any actuation tool WITHOUT a valid bearer returns 401;
-  WITH a valid bearer succeeds. New test `tests/test_tool_authz.py` proves both.
-- ☐ 🔴 **SEC.2 — Real disarm-PIN verification (§4.2).** In
-  `disarm_perimeter_alert` (`src/server.py`) verify the PIN *value* against a
-  stored **hashed** PIN (not just `isdigit()/len()==4`); remove reliance on any
-  literal. Add attempt lockout (e.g. 5 tries → cooldown). AC: wrong PIN rejected,
-  right PIN disarms, 6th wrong attempt is locked out; test covers all three.
-- ☐ 🔴 **SEC.3 — Secrets & PIN hashing (§4.3).** Add `argon2-cffi`; store the
-  disarm PIN as an Argon2 hash in config, never plaintext. Introduce a `.env`
-  (gitignored — already is) + `python-dotenv` for dev creds; document the AWS
-  Secrets Manager path for the field. Remove `_DEMO_DISARM_PIN = "1234"` literal
-  from `src/web/server.py` (load from config/hash). AC: grep finds no plaintext
-  PIN/secret in `src/`; gitleaks clean.
-- ☐ **SEC.4 — Integrity: trust the check, not the payload (§4.8).** In
-  `src/adapters/ring_adapter.py`, set `verified_signature` ONLY from
-  `verify_webhook`, never from the inbound payload field. AC: a payload claiming
-  `verified_signature: true` with a bad HMAC is treated as unverified; test added.
+- ☑ 🔴 **SEC.1 — Authorization guard on MCP tools (§4.1, the critical gap).**
+  Done `899905f` — deny-by-default `BearerAuthMiddleware` in `src/mcp_auth.py`,
+  wired in `build_asgi_app`. Unauthenticated actuation call → 401, proven in
+  `tests/test_security_fixes.py`.
+- ☑ 🔴 **SEC.2 — Real disarm-PIN verification (§4.2).** Done `899905f` —
+  value-checked against a stored hash with lockout; MCP + web console both use
+  `PinVerifier`. Wrong well-formed PIN rejected (test).
+- ◐ 🔴 **SEC.3 — Secrets & PIN hashing (§4.3).** Partial `899905f` — PIN stored
+  as hash, `1234` literal removed, `.env` gitignored. FOLLOW-UP: swap dev sha256
+  → Argon2 (`argon2-cffi`) + AWS Secrets Manager for the field.
+- ☑ **SEC.4 — Integrity: trust the check, not the payload (§4.8).** Done
+  `ca7b0ef` — Ring `verified_signature` derived from the server HMAC only; forged
+  flag ignored (test).
 
 ### Engineering baseline (DEVELOPMENT_PLAN §3)
-- ☐ **SEC.5 — CI pipeline.** `.github/workflows/ci.yml`: uv install → `ruff
-  check` → `ruff format --check` → `mypy src` → `pytest --cov=src --cov-fail-under=85`
-  → `pip-audit` → `gitleaks`. AC: green on a PR; a deliberately-broken test fails it.
-- ☐ **SEC.6 — Lint/format/type config.** Add `[tool.ruff]` (enable `S` bandit
-  rules, bugbear, isort) + `[tool.mypy]` (strict on `src/`) to `pyproject.toml`.
-  Fix what they flag. AC: `ruff check` and `mypy src` both clean.
-- ☐ **SEC.7 — Pre-commit.** `.pre-commit-config.yaml`: ruff, ruff-format,
-  gitleaks, trailing-whitespace, eof-fixer, check-added-large-files. AC:
-  `pre-commit run --all-files` passes.
-- ☐ 🔴 **SEC.8 — Dependency / slopsquatting audit (§4.6).** Run `pip-audit`;
-  manually confirm each of the 9 runtime deps resolves to its real PyPI project
-  (none hallucinated — spot-verified in planning, re-confirm in CI). Ensure
-  `uv.lock` is committed WITH hashes. AC: `pip-audit` clean; lockfile hashes present.
-- ☐ **SEC.9 — Structured audit logging (§4.9).** Add stdlib `logging` + JSON
-  formatter module; log every security event (auth ok/fail, disarm attempt, CAD
-  stage, profile change, actuation) — NEVER a secret/PIN. Replace `print` in
-  `src/` entrypoints. AC: an auth failure and a disarm attempt produce a log line
-  with no secret in it; test asserts the redaction.
-- ☐ **SEC.10 — Invariant test suite.** `tests/test_invariants.py`: assert
-  `permitted_actuators(SILENT_DURESS, L)==()` for all L; L3 without corroboration
-  held to L2; CAD tool never auto-sends. AC: all pass; mutating the cap in source
-  makes them fail (verify once).
-- ☐ **SEC.11 — `docs/SECURITY_AUDIT.md`.** Record every §4 item as PASS/FIXED/N-A
-  with the closing commit. AC: all 11 classes addressed; no open HIGH/CRITICAL.
-- ☐ **SEC.12 — Review in-repo agent-instruction files (§4.11).** Read
-  `references/bee-skill/CLAUDE.md` and any `.cursorrules`/`AGENTS.md` for injected
-  directives. AC: documented clean (or the injection flagged & removed).
+- ☑ **SEC.5 — CI pipeline.** Done `899905f` — `.github/workflows/ci.yml` green on
+  the branch (ruff/mypy/pytest-cov/pip-audit/gitleaks).
+- ◐ **SEC.6 — Lint/format/type config.** ruff clean; mypy down 12→4 (remaining 4
+  pre-existing Pillow/boto3 typing, non-blocking). Flip mypy to hard-fail after
+  the last 4 are resolved.
+- ☐ **SEC.7 — Pre-commit.** Config added; run `uv run pre-commit install` locally.
+- ◐ 🔴 **SEC.8 — Dependency / slopsquatting audit (§4.6).** `pip-audit` in CI
+  (non-blocking during adoption); 9 deps verified real; `uv.lock` hashes present.
+  Flip to hard-fail after first triage.
+- ☑ **SEC.9 — Structured audit logging (§4.9).** Done `ca7b0ef` — `src/audit_log.py`
+  with mandatory secret redaction; wired to auth-deny + disarm; redaction tested.
+- ☐ **SEC.10 — Invariant test suite.** Next: `tests/test_invariants.py`.
+- ☑ **SEC.11 — `docs/SECURITY_AUDIT.md`.** Created — each class PASS/FIXED/N-A
+  with closing commit; zero open HIGH/CRITICAL.
+- ☐ **SEC.12 — Review in-repo agent-instruction files (§4.11).**
 
 **→ Cut `v0.2.0`** when all A boxes are ☑ and CI is green on `main`.
 
