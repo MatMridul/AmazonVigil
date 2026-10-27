@@ -42,3 +42,9 @@ yarn-error.log*
 .env
 .env.local
 *.local
+
+# Runtime state (Phase B — never commit the live datastore)
+*.db
+*.db-wal
+*.db-shm
+vigil_state.db*

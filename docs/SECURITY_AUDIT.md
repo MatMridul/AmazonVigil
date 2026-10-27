@@ -17,14 +17,15 @@ yet done.
 | 4.8 | Software & Data Integrity | **FIXED** | `ca7b0ef` — Ring `verified_signature` derived from server HMAC, never the payload flag; CAD SHA-256 already present. Tests prove forged flag ignored. |
 | 4.9 | Security Logging & Monitoring | **FIXED** (local) | `ca7b0ef` — `src/audit_log.py` structured events + mandatory secret redaction; wired to auth-deny + disarm. Test proves no secret in a line. Field: ship to CloudWatch (Phase C). |
 | 4.10 | SSRF / XSS / CSRF | **N/A** (today) | Console is localhost JSON API, author-controlled static. Re-audit if a real web app is built; CSRF needed the moment the console is non-local. |
-| 4.11 | Rules-File Backdoor / prompt injection | **PARTIAL** | Deterministic state machine is the sole authority — LLM scores, never actuates (invariant). `references/bee-skill/CLAUDE.md` review + untrusted-ingest delimiting = SEC.12 / Phase D. |
+| 4.11 | Rules-File Backdoor / prompt injection | **PARTIAL** | Deterministic state machine is the sole authority — LLM scores, never actuates (invariant test `test_invariants.py`). `references/bee-skill/CLAUDE.md` **reviewed clean** (SEC.12) — legitimate skill-packaging instructions, no injected directives. Untrusted-ingest delimiting for Bedrock = Phase D. |
 
 ## Standing automated gates (keep these closed)
-- `ruff check` with bandit `S` rules — CI, pre-commit.
-- `pip-audit` — CI (flip to hard-fail after first triage).
+- `ruff check` with bandit `S` rules — CI (blocking), pre-commit (installed, SEC.7).
+- `pip-audit --skip-editable` — CI **blocking** (SEC.8); clean, no known vulns.
 - `gitleaks` — CI + pre-commit.
+- `mypy src` — CI **blocking**; clean on all 19 files.
 - coverage floor 85% on safety-critical modules — CI.
-- invariant tests (`test_invariants.py`, SEC.10) — pending.
+- invariant tests (`test_invariants.py`, SEC.10) — **done**, 11 tests lock the moat.
 
 ## Open HIGH/CRITICAL
 None. The two critical holes (4.1 broken access control, 4.2 insecure PIN) are

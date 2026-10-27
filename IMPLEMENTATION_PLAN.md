@@ -47,33 +47,35 @@ Legend:  ☐ todo · ◐ in progress · ☑ done · 🔴 security-critical · �
 - ◐ **SEC.6 — Lint/format/type config.** ruff clean; mypy down 12→4 (remaining 4
   pre-existing Pillow/boto3 typing, non-blocking). Flip mypy to hard-fail after
   the last 4 are resolved.
-- ☐ **SEC.7 — Pre-commit.** Config added; run `uv run pre-commit install` locally.
-- ◐ 🔴 **SEC.8 — Dependency / slopsquatting audit (§4.6).** `pip-audit` in CI
-  (non-blocking during adoption); 9 deps verified real; `uv.lock` hashes present.
-  Flip to hard-fail after first triage.
+- ☑ **SEC.7 — Pre-commit.** Config added; hooks installed (`pre-commit install`).
+- ☑ 🔴 **SEC.8 — Dependency / slopsquatting audit (§4.6).** `pip-audit --skip-editable`
+  BLOCKING in CI; clean (no known vulns); 9 deps verified real; `uv.lock` hashes.
 - ☑ **SEC.9 — Structured audit logging (§4.9).** Done `ca7b0ef` — `src/audit_log.py`
   with mandatory secret redaction; wired to auth-deny + disarm; redaction tested.
-- ☐ **SEC.10 — Invariant test suite.** Next: `tests/test_invariants.py`.
+- ☑ **SEC.10 — Invariant test suite.** Done — `tests/test_invariants.py`, 11 tests
+  lock silence-under-duress / no-auto-911 / L3-corroboration.
 - ☑ **SEC.11 — `docs/SECURITY_AUDIT.md`.** Created — each class PASS/FIXED/N-A
   with closing commit; zero open HIGH/CRITICAL.
-- ☐ **SEC.12 — Review in-repo agent-instruction files (§4.11).**
+- ☑ **SEC.12 — Review in-repo agent-instruction files (§4.11).** Done —
+  `references/bee-skill/CLAUDE.md` reviewed clean (legit skill-packaging, no
+  injected directives).
 
 **→ Cut `v0.2.0`** when all A boxes are ☑ and CI is green on `main`.
 
 ---
 
 ## Phase B — Persistence & durability → `0.3.0`
-- ☐ **B.1** Introduce a datastore abstraction (`src/store/`) — SQLite default
-  (local/edge), interface-clean so DynamoDB can back it in the field. AC: the
-  interface has an in-memory + SQLite impl, both tested.
-- ☐ **B.2** Move the incident store (`_incidents` dict in `server.py`) behind it.
-  AC: an incident staged, server restarts, incident still queryable.
+- ☑ **B.1** Datastore abstraction (`src/store/`) — `IncidentStore` protocol with
+  `InMemoryStore` + `SqliteStore`; both tested, parity proven (`tests/test_store.py`).
+- ☑ **B.2** Incident store (`_incidents`) moved behind it; durable when
+  `VIGIL_STATE_DB` is set. AC MET: `test_sqlite_state_survives_restart` proves a
+  record written by one instance is read by a fresh instance on the same file.
 - ☐ **B.3** Persist OAuth tokens + auth codes (`mcp_auth.py` in-memory dicts).
   AC: a restart does not invalidate a live token before its TTL.
-- ☐ **B.4** Persist guard profiles + the hashed disarm PIN. AC: profile survives
-  restart.
+- ☐ **B.4** Persist guard profiles + the hashed disarm PIN. AC: survives restart.
 - ☐ 🔴 **B.5** Parameterized queries ONLY — no string-built SQL anywhere (§4.4).
-  AC: grep shows zero f-string/`%`-format SQL; ruff-S flags none.
+  AC: grep shows zero f-string/`%`-format SQL; ruff-S flags none. (SqliteStore
+  already parameterized.)
 
 **→ Cut `v0.3.0`.**
 
@@ -128,7 +130,7 @@ Legend:  ☐ todo · ◐ in progress · ☑ done · 🔴 security-critical · �
 ## Phase F — Alexa+ certification → `0.9.0`  👤 (you + browser + AWS)
 > From `RETURN_STATUS.md`. Agent preps everything; you do the consented steps.
 - ☐ 👤 **F.1** Create the IAM user + `sts:AssumeRole` to Amazon's role, generate
-  keys (you do this consciously — standing secret). 
+  keys (you do this consciously — standing secret).
 - ☐ 👤 **F.2** `aws codeartifact login` + `npm install -g @alexa-ai/cli` in WSL
   (Node 24 present). AC: CLI installs.
 - ☐ 👤 **F.3** `alexa-ai configure` → LWA browser consent. AC: CLI authed.
