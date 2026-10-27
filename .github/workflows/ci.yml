@@ -33,7 +33,6 @@ jobs:
 
       - name: Type check (mypy)
         run: uv run mypy src
-        continue-on-error: true  # SEC.6: flip to false once strict-clean
 
       - name: Tests + coverage (safety-critical floor 85%)
         run: >
