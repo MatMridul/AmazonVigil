@@ -163,3 +163,32 @@ def test_no_plaintext_pin_stored():
     v = PinVerifier(pin_hash=hash_pin("8391"))
     assert "8391" not in v.pin_hash
     assert len(v.pin_hash) == 64  # sha256 hex
+
+
+# --------------------------------------------------------------------------- #
+# SEC.9 — audit logging redacts secrets
+# --------------------------------------------------------------------------- #
+
+
+def test_audit_redacts_secret_fields(caplog):
+    import logging
+
+    from src.audit_log import audit
+
+    with caplog.at_level(logging.INFO, logger="vigil.audit"):
+        audit(
+            "disarm.attempt",
+            outcome="invalid_pin",
+            pin="8391",
+            token="secret-bearer",
+            incident_id="INC-9",
+        )
+
+    line = caplog.records[-1].getMessage()
+    # The event + safe context are present…
+    assert "disarm.attempt" in line
+    assert "INC-9" in line
+    # …but the secret-bearing fields are redacted, never emitted in the clear.
+    assert "8391" not in line
+    assert "secret-bearer" not in line
+    assert "***" in line

@@ -18,6 +18,7 @@ from threading import Lock
 from mcp.server.fastmcp import FastMCP
 
 from src.adapters.bedrock_analyzer import BedrockThreatEvaluator
+from src.audit_log import audit as _audit
 from src.core.cad_dispatcher import build_cad_packet
 from src.core.integrity_auditor import compute_optical_integrity
 from src.core.types import IntegrityVector, PerimeterEvent, WearerBioContext
@@ -237,10 +238,13 @@ async def disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict:
     if not incident_id:
         raise ValueError("incident_id is required")
     if _pin_verifier.is_locked():
+        _audit("disarm.attempt", outcome="locked_out", incident_id=incident_id)
         return {"status": "rejected", "reason": "locked_out", "incident_id": incident_id}
     if not _pin_verifier.verify(disarm_pin):
+        _audit("disarm.attempt", outcome="invalid_pin", incident_id=incident_id)
         return {"status": "rejected", "reason": "invalid_pin", "incident_id": incident_id}
     _incidents.setdefault(incident_id, {})["disarmed"] = True
+    _audit("disarm.attempt", outcome="disarmed", incident_id=incident_id)
     return {"status": "disarmed", "incident_id": incident_id}
 
 

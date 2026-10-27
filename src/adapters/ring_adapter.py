@@ -95,14 +95,31 @@ class RingAdapter(IngestAdapter):
         """Construct the real WHEP WebRTC egress URL for a device's live video."""
         return f"{self.api_base}/devices/{device_id}/media/streaming/whep/sessions"
 
-    def parse_event(self, payload: dict, *, simulated: bool = False) -> RingEvent:
-        """Normalize a Ring webhook payload into a RingEvent."""
+    def parse_event(
+        self,
+        payload: dict,
+        *,
+        simulated: bool = False,
+        raw_body: bytes | None = None,
+        signature: str | None = None,
+    ) -> RingEvent:
+        """Normalize a Ring webhook payload into a RingEvent.
+
+        SEC.4 — ``verified_signature`` is NEVER read from the payload (an
+        attacker controls the body and could just set the flag). It is computed
+        HERE from the server's own HMAC check over the raw request body + the
+        signature header. No ``raw_body``/``signature`` → treated as UNVERIFIED.
+        """
+        if raw_body is not None and signature is not None:
+            verified = self.verify_webhook(raw_body, signature)
+        else:
+            verified = False
         return RingEvent(
             device_id=str(payload.get("device_id", "ring_front")),
             kind=str(payload.get("kind", "motion")),
             classification=str(payload.get("classification", "unknown")),
             acoustic_db=float(payload.get("acoustic_db", 0.0)),
-            verified_signature=bool(payload.get("verified_signature", False)),
+            verified_signature=verified,
             simulated=simulated,
         )
 

@@ -56,13 +56,39 @@ def test_parse_event_normalizes_payload():
             "kind": "ding",
             "classification": "human",
             "acoustic_db": 42.0,
-            "verified_signature": True,
         },
         simulated=False,
     )
     assert isinstance(ev, RingEvent)
     assert ev.device_id == "d1" and ev.kind == "ding"
     assert ev.classification == "human" and ev.acoustic_db == 42.0
+
+
+# --- SEC.4: verified_signature derives from the HMAC check, NOT the payload --- #
+
+
+def test_parse_event_ignores_self_claimed_verified_flag():
+    """An attacker-set 'verified_signature: true' in the body must NOT be trusted."""
+    a = RingAdapter(webhook_secret="shhh")
+    ev = a.parse_event(
+        {"kind": "motion", "verified_signature": True},  # forged flag
+        simulated=False,
+    )  # no raw_body/signature supplied -> cannot verify -> must be False
+    assert ev.verified_signature is False
+
+
+def test_parse_event_verifies_from_real_hmac():
+    secret = "shhh"
+    a = RingAdapter(webhook_secret=secret)
+    body = b'{"kind":"motion","classification":"human"}'
+    good = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    import json as _json
+
+    ev_ok = a.parse_event(_json.loads(body), simulated=False, raw_body=body, signature=good)
+    assert ev_ok.verified_signature is True
+
+    ev_bad = a.parse_event(_json.loads(body), simulated=False, raw_body=body, signature="deadbeef")
+    assert ev_bad.verified_signature is False
 
 
 def test_simulated_telemetry_is_flagged():

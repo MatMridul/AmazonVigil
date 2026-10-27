@@ -33,6 +33,7 @@ import hmac
 import os
 import secrets
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 # PKCE (RFC 7636) — Alexa+ requires the S256 method.
@@ -119,7 +120,7 @@ class AuthorizationServer:
 
     issuer: str
     resource_uri: str
-    clock: callable = time.monotonic
+    clock: Callable[[], float] = time.monotonic
     _codes: dict[str, _AuthCode] = field(default_factory=dict)
     _tokens: dict[str, _AccessToken] = field(default_factory=dict)
 
@@ -261,6 +262,14 @@ class BearerAuthMiddleware:
             await self.app(scope, receive, send)
             return
         # 401 — no WWW-Authenticate header (Alexa+ lists it "not supported yet").
+        from src.audit_log import audit
+
+        audit(
+            "auth.denied",
+            outcome="denied",
+            path=path,
+            client=headers.get("x-forwarded-for") or "unknown",
+        )
         body = b'{"error":"unauthorized","error_description":"valid Bearer token required"}'
         await send(
             {
@@ -308,7 +317,7 @@ class PinVerifier:
     pin_hash: str
     max_attempts: int = _PIN_MAX_ATTEMPTS
     lockout_seconds: float = _PIN_LOCKOUT_SECONDS
-    clock: callable = time.monotonic
+    clock: Callable[[], float] = time.monotonic
     _failures: int = 0
     _locked_until: float = 0.0
 
