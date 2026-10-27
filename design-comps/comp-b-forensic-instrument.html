@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vigil — Comp B · Forensic Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-obsidian:#090A0B;
+    --surface-volcano:#141618;
+    --surface-elevated:#1E2124;
+    --border-subtle:#2B3035;
+    --border-focus:#4A525A;
+    --text-primary:#F2F4F7;
+    --text-muted:#9AA2AB;
+    --text-dim:#636B74;
+    --accent-amber:#F59E0B;
+    --accent-cyan:#06B6D4;
+    --accent-crimson:#EF4444;
+    --accent-emerald:#10B981;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --ui:'Inter',sans-serif;
+    --ease:cubic-bezier(.2,.7,.3,1);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg-obsidian);
+    color:var(--text-muted);
+    font-family:var(--mono);
+    font-size:13px; line-height:1.45;
+    font-feature-settings:"tnum" 1;
+    overflow-x:hidden;
+    /* hairline instrument grid */
+    background-image:
+      linear-gradient(var(--border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size:100% 40px, 48px 100%;
+    background-position:0 -1px, -1px 0;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before { /* darken grid to a whisper */
+    content:''; position:fixed; inset:0; background:var(--bg-obsidian); opacity:.93; z-index:-1;
+  }
+  .k { color:var(--text-dim); text-transform:uppercase; letter-spacing:.12em; font-size:10px; font-weight:600; }
+  .val { color:var(--text-primary); }
+
+  /* ---- header strip ---- */
+  header { display:flex; align-items:stretch; border-bottom:1px solid var(--border-focus); background:var(--surface-volcano); }
+  .cell { padding:10px 16px; border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:3px; justify-content:center; }
+  .cell:last-child { border-right:0; }
+  .brand { font-weight:800; letter-spacing:.3em; color:var(--text-primary); font-size:14px; }
+  .grow { flex:1; }
+  .statusflag { color:var(--accent-emerald); font-weight:700; letter-spacing:.08em; }
+  body.threat .statusflag { color:var(--accent-amber); }
+
+  /* ---- main grid ---- */
+  main { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:1px; background:var(--border-subtle); border-bottom:1px solid var(--border-subtle); }
+  .module { background:var(--bg-obsidian); padding:0; }
+  .mhead { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border-subtle); }
+  .mhead .idx { color:var(--text-dim); }
+  .mbody { padding:16px; }
+
+  /* ---- the readout: threat score as tabular bar (NO radial gauge) ---- */
+  .readout { grid-column:1 / -1; background:var(--bg-obsidian); border-bottom:1px solid var(--border-subtle); padding:22px 16px; }
+  .readline { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+  .bigscore { font-size:48px; font-weight:800; color:var(--text-primary); line-height:1; letter-spacing:-.02em; transition:color .6s var(--ease); }
+  body.threat .bigscore { color:var(--accent-amber); }
+  .verdict { font-size:11px; letter-spacing:.14em; }
+  .bars { flex:1; min-width:280px; display:flex; flex-direction:column; gap:5px; }
+  .barrow { display:flex; align-items:center; gap:10px; font-size:11px; }
+  .barrow .lbl { width:58px; color:var(--text-dim); }
+  .barrow .bar { flex:1; letter-spacing:1px; color:var(--text-dim); }
+  .barrow .bar b { color:var(--accent-cyan); font-weight:400; }
+  .barrow .num { width:42px; text-align:right; color:var(--text-muted); }
+  body.threat .barrow.hot .bar b { color:var(--accent-amber); }
+  body.threat .barrow.crit .bar b { color:var(--accent-crimson); }
+
+  /* ---- camera ---- */
+  .cam { aspect-ratio:16/9; position:relative; background:#0b0d0f; border:1px solid var(--border-subtle); overflow:hidden; }
+  .crosshair { position:absolute; inset:0; background:
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(255,255,255,.04) 50%, transparent calc(50% + .5px)),
+    linear-gradient(0deg, transparent calc(50% - .5px), rgba(255,255,255,.04) 50%, transparent calc(50% + .5px)); }
+  .figure { position:absolute; left:46%; top:30%; width:52px; height:110px; border-radius:38% 38% 8% 8%; background:#191c1f; opacity:.5; transition:all .6s var(--ease); }
+  body.threat .figure { background:#241d16; opacity:.85; }
+  .sim { position:absolute; top:8px; left:8px; font-size:9px; letter-spacing:.14em; color:var(--text-dim); border:1px solid var(--border-subtle); padding:2px 6px; background:rgba(9,10,11,.8); }
+  .ts { position:absolute; bottom:8px; right:10px; font-size:10px; color:var(--text-dim); }
+  .bbox { position:absolute; display:none; left:44%; top:26%; width:16%; height:56%; border:1px solid var(--accent-amber); }
+  .bbox::before { content:'[ MASKED_HUMAN conf=0.94 ]'; position:absolute; top:-16px; left:0; font-size:9px; color:var(--accent-amber); white-space:nowrap; }
+  body.threat .bbox { display:block; animation:flick .4s steps(3); }
+  @keyframes flick { 0%{opacity:0;} 50%{opacity:1;} }
+
+  /* ---- device rows ---- */
+  .devrow { display:grid; grid-template-columns:1fr auto auto; gap:8px; padding:9px 0; border-bottom:1px solid var(--border-subtle); align-items:center; }
+  .devrow:last-child { border-bottom:0; }
+  .devrow .name { color:var(--text-primary); }
+  .devrow .meta { color:var(--text-dim); font-size:11px; }
+  .devrow .stat { color:var(--accent-emerald); font-size:10px; letter-spacing:.1em; }
+
+  /* attribution lines appear on threat */
+  .attrlines { display:none; }
+  body.threat .attrlines { display:block; }
+  body.threat .nominal { display:none; }
+  .aline { padding:8px 0; border-bottom:1px solid var(--border-subtle); display:flex; gap:12px; }
+  .aline:last-child { border-bottom:0; }
+  .aline .tag { color:var(--text-dim); width:72px; flex-shrink:0; }
+  .aline .txt { color:var(--text-muted); }
+  .aline .txt.amber { color:var(--accent-amber); }
+
+  /* ---- guidance bar (threat) ---- */
+  .guidance { display:none; grid-column:1/-1; background:var(--surface-volcano); border-top:1px solid rgba(245,158,11,.35); border-bottom:1px solid rgba(245,158,11,.35); padding:16px; }
+  body.threat .guidance { display:block; animation:slidein .5s var(--ease); }
+  @keyframes slidein { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+  .guidance .hd { color:var(--accent-amber); font-weight:700; letter-spacing:.1em; font-size:11px; margin-bottom:8px; }
+  .guidance .msg { color:var(--text-primary); font-size:13px; line-height:1.6; max-width:720px; }
+  .acts { display:flex; gap:1px; margin-top:14px; background:var(--border-subtle); border:1px solid var(--border-subtle); width:fit-content; }
+  .acts button { font-family:var(--mono); font-size:11px; letter-spacing:.06em; padding:9px 16px; border:0; background:var(--bg-obsidian); color:var(--text-muted); cursor:pointer; transition:all .15s; }
+  .acts button:hover { background:var(--surface-elevated); color:var(--text-primary); }
+  .acts button.crit { color:var(--accent-crimson); }
+  .acts button.crit:hover { background:rgba(239,68,68,.1); }
+
+  /* ---- log ---- */
+  .log { grid-column:1/-1; background:var(--bg-obsidian); }
+  .logline { display:grid; grid-template-columns:120px 1fr 200px 140px; gap:14px; padding:9px 16px; border-bottom:1px solid var(--border-subtle); font-size:12px; }
+  .logline:last-child { border-bottom:0; }
+  .logline .t { color:var(--text-dim); }
+  .logline .c-safe { color:var(--accent-emerald); }
+  .logline .c-sys { color:var(--accent-cyan); }
+  .logline .c-hh { color:var(--text-muted); }
+
+  .switcher { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:1px; background:var(--border-focus); border:1px solid var(--border-focus); z-index:50; }
+  .switcher button { font-family:var(--mono); font-size:11px; letter-spacing:.06em; padding:9px 18px; border:0; background:var(--surface-elevated); color:var(--text-muted); cursor:pointer; }
+  .switcher button.active { background:var(--text-primary); color:var(--bg-obsidian); font-weight:700; }
+
+  @media (max-width:900px){ main{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+  <header>
+    <div class="cell"><span class="brand">VIGIL</span></div>
+    <div class="cell"><span class="k">Node</span><span class="val">PRIMARY_RESIDENCE</span></div>
+    <div class="cell"><span class="k">Mode</span><span class="val modeval">NIGHT_SENTRY</span></div>
+    <div class="cell grow"><span class="k">State</span><span class="statusflag">◆ PERIMETER_SECURE</span></div>
+    <div class="cell"><span class="k">Operator</span><span class="val">M.LIN / ADMIN</span></div>
+  </header>
+
+  <!-- READOUT -->
+  <div class="readout">
+    <div class="readline">
+      <div>
+        <div class="bigscore">0.08</div>
+        <div class="verdict k" style="margin-top:6px;color:var(--accent-emerald)">L0 · GROUNDS NOMINAL</div>
+      </div>
+      <div class="bars">
+        <div class="barrow"><span class="lbl">Φ_motion</span><span class="bar"><b>██████████</b></span><span class="num">1.00</span></div>
+        <div class="barrow hot"><span class="lbl">Φ_visual</span><span class="bar"><b>██████████</b></span><span class="num">1.00</span></div>
+        <div class="barrow"><span class="lbl">Φ_audio</span><span class="bar"><b>██████████</b></span><span class="num">1.00</span></div>
+        <div class="barrow crit"><span class="lbl">Φ_net</span><span class="bar"><b>██████████</b></span><span class="num">1.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- GUIDANCE (threat only) -->
+    <div class="guidance">
+      <div class="hd">▲ PERIMETER ALERT — ACTIVE PROTECTION IN PROGRESS</div>
+      <div class="msg">Unknown individual manipulating front entryway. Fire TV living-room deterrence running simulated occupancy. Emergency CAD manifest staged. Remain inside.</div>
+      <div class="acts">
+        <button>DO_NOT_OPEN</button>
+        <button>INTERCOM</button>
+        <button>CANCEL_FALSE</button>
+        <button class="crit">DISPATCH_911</button>
+      </div>
+    </div>
+
+    <!-- CAMERA -->
+    <section class="module">
+      <div class="mhead"><span class="k camlabel">CAM.00 — FRONT_PORCH</span><span class="idx">1080p</span></div>
+      <div class="mbody">
+        <div class="cam">
+          <div class="crosshair"></div>
+          <div class="sim">SIM_FEED</div>
+          <div class="figure"></div>
+          <div class="bbox"></div>
+          <div class="ts tsval">23:14:02 · quiet</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MESH / ATTRIBUTION -->
+    <section class="module">
+      <div class="mhead"><span class="k meshlabel">MESH_TELEMETRY</span><span class="idx">4 nodes</span></div>
+      <div class="mbody">
+        <div class="nominal">
+          <div class="devrow"><span class="name">RING_PRO_2</span><span class="meta">AC · −48dBm</span><span class="stat">ONLINE</span></div>
+          <div class="devrow"><span class="name">BEE_WEAR · maya</span><span class="meta">asleep &gt;3h</span><span class="stat">ARMED</span></div>
+          <div class="devrow"><span class="name">FIRE_TV · lr</span><span class="meta">standby · CEC</span><span class="stat">READY</span></div>
+          <div class="devrow"><span class="name">ECHO · bedroom</span><span class="meta">whisper SSML</span><span class="stat">READY</span></div>
+        </div>
+        <div class="attrlines">
+          <div class="aline"><span class="tag">SOURCE</span><span class="txt amber">anthropic.claude-3-5-sonnet</span></div>
+          <div class="aline"><span class="tag">VISUAL</span><span class="txt">hooded subject · crowbar in frame</span></div>
+          <div class="aline"><span class="tag">AUDIO</span><span class="txt">metal-on-metal prying · 3.2kHz</span></div>
+          <div class="aline"><span class="tag">WEARER</span><span class="txt">maya asleep · echo whispered</span></div>
+          <div class="aline"><span class="tag">ACTUATE</span><span class="txt">firetv_deterrence · 75%</span></div>
+          <div class="aline"><span class="tag">DWELL</span><span class="txt amber">22s &gt; 15s grace · ESCALATE</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG -->
+    <section class="log">
+      <div class="mhead"><span class="k">PERIMETER_LOG — EXTERNAL_BOUNDARY</span><span class="idx">3 events</span></div>
+      <div class="logline"><span class="t">23:15:14</span><span>parcel_delivery @ porch</span><span class="c-safe">L1 SAFE_COURIER 12s</span><span>logged_muted</span></div>
+      <div class="logline"><span class="t">22:45:00</span><span>night_sentry auto_engage</span><span class="c-sys">STATE_TRANSITION</span><span>armed</span></div>
+      <div class="logline"><span class="t">18:30:22</span><span>front_door access</span><span class="c-hh">VERIFIED jordan_lin</span><span>zero_trace</span></div>
+    </section>
+  </main>
+
+  <div class="switcher">
+    <button class="active" data-state="nominal">NOMINAL</button>
+    <button data-state="threat">SCENARIO_06 · PROWLER</button>
+  </div>
+
+<script>
+  const buttons=document.querySelectorAll('.switcher button');
+  const flag=document.querySelector('.statusflag');
+  const score=document.querySelector('.bigscore');
+  const verdict=document.querySelector('.verdict');
+  const bars=document.querySelectorAll('.barrow .bar b');
+  const nums=document.querySelectorAll('.barrow .num');
+  const camlabel=document.querySelector('.camlabel');
+  const meshlabel=document.querySelector('.meshlabel');
+  const ts=document.querySelector('.tsval');
+  function setState(s){
+    const t=s==='threat';
+    document.body.classList.toggle('threat',t);
+    buttons.forEach(b=>b.classList.toggle('active',b.dataset.state===s));
+    if(t){
+      flag.textContent='▲ ACTIVE_DEFENSE';
+      score.textContent='0.88'; verdict.textContent='L2 · SUSPICIOUS — DETER'; verdict.style.color='var(--accent-amber)';
+      bars[1].parentElement.querySelector('.num');
+      // Φ_V collapses on tamper-adjacent? here prowler keeps optics; emphasize score only
+      camlabel.textContent='CAM.00 — BREACH_STREAM';
+      meshlabel.textContent='THREAT_ATTRIBUTION';
+      ts.textContent='23:14:24 · DWELL 22s';
+    } else {
+      flag.textContent='◆ PERIMETER_SECURE';
+      score.textContent='0.08'; verdict.textContent='L0 · GROUNDS NOMINAL'; verdict.style.color='var(--accent-emerald)';
+      camlabel.textContent='CAM.00 — FRONT_PORCH';
+      meshlabel.textContent='MESH_TELEMETRY';
+      ts.textContent='23:14:02 · quiet';
+    }
+  }
+  buttons.forEach(b=>b.addEventListener('click',()=>setState(b.dataset.state)));
+</script>
+</body>
+</html>
