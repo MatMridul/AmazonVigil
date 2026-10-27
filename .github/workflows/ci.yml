@@ -43,7 +43,7 @@ jobs:
           --cov-fail-under=85
 
       - name: Dependency audit (pip-audit)
-        run: uv run pip-audit || true  # SEC.8: flip to hard-fail after triage
+        run: uv run pip-audit --skip-editable
 
   secrets:
     runs-on: ubuntu-latest

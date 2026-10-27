@@ -23,6 +23,7 @@ from src.core.cad_dispatcher import build_cad_packet
 from src.core.integrity_auditor import compute_optical_integrity
 from src.core.types import IntegrityVector, PerimeterEvent, WearerBioContext
 from src.mcp_auth import default_pin_verifier
+from src.store import IncidentStore, InMemoryStore, SqliteStore
 
 # Idempotency dedup window (governance rule 5).
 IDEMPOTENCY_TTL_SECONDS = 15.0
@@ -93,8 +94,18 @@ _evaluator = BedrockThreatEvaluator()
 # hash, loaded from config; never a literal PIN).
 _pin_verifier = default_pin_verifier()
 
-# Minimal in-memory incident store for Phase 1 reasoning/disarm tools.
-_incidents: dict[str, dict] = {}
+
+# Incident store (Phase B.2): durable when VIGIL_STATE_DB is set (SQLite file so
+# state survives a restart), else in-memory for tests/ephemeral runs. The server
+# only sees the IncidentStore interface — the backend is swappable.
+def _build_incident_store() -> IncidentStore:
+    db_path = os.environ.get("VIGIL_STATE_DB", "").strip()
+    if db_path:
+        return SqliteStore(db_path)
+    return InMemoryStore()
+
+
+_incidents: IncidentStore = _build_incident_store()
 
 
 def _duplicate_response(token: str) -> dict:
@@ -221,7 +232,7 @@ async def format_emergency_cad_packet(incident_id: str) -> dict:
         threat_summary="Active residential breach attempt (simulated Phase 1).",
         evidence_timeline=["event_ingested", "integrity_evaluated", "cad_staged"],
     )
-    _incidents.setdefault(incident_id, {})["cad"] = packet.model_dump()
+    _incidents.merge(incident_id, {"cad": packet.model_dump()})
     return packet.model_dump()
 
 
@@ -243,7 +254,7 @@ async def disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict:
     if not _pin_verifier.verify(disarm_pin):
         _audit("disarm.attempt", outcome="invalid_pin", incident_id=incident_id)
         return {"status": "rejected", "reason": "invalid_pin", "incident_id": incident_id}
-    _incidents.setdefault(incident_id, {})["disarmed"] = True
+    _incidents.merge(incident_id, {"disarmed": True})
     _audit("disarm.attempt", outcome="disarmed", incident_id=incident_id)
     return {"status": "disarmed", "incident_id": incident_id}
 
@@ -257,7 +268,7 @@ async def explain_incident_reasoning(incident_id: str | None = None) -> dict:
     if incident_id is None:
         return {
             "summary": "No incident specified; perimeter nominal.",
-            "incidents_known": list(_incidents.keys()),
+            "incidents_known": _incidents.ids(),
         }
     record = _incidents.get(incident_id)
     if record is None:
