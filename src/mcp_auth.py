@@ -35,6 +35,7 @@ import secrets
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from threading import Lock
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -328,6 +329,104 @@ class BearerAuthMiddleware:
             }
         )
         await send({"type": "http.response.body", "body": body})
+
+
+# --------------------------------------------------------------------------- #
+# Rate limiting — throttle brute-force / DoS on the sensitive endpoints.
+# --------------------------------------------------------------------------- #
+# A fixed-window counter per client key. Deliberately simple and dependency-free
+# (no Redis); a field deployment behind multiple workers moves this to a shared
+# store, but for a single-process edge node this defeats a trivial flood of
+# /authorize, /token, and /mcp calls. Complements SEC.2's per-PIN lockout with a
+# per-CLIENT request cap.
+_RATE_LIMIT_MAX = 60  # requests...
+_RATE_LIMIT_WINDOW = 60.0  # ...per this many seconds, per client key
+
+
+class RateLimiter:
+    """Thread-safe fixed-window request counter keyed by an arbitrary string."""
+
+    def __init__(
+        self,
+        max_requests: int = _RATE_LIMIT_MAX,
+        window_seconds: float = _RATE_LIMIT_WINDOW,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._max = max_requests
+        self._window = window_seconds
+        self._clock = clock
+        self._hits: dict[str, tuple[float, int]] = {}
+        self._lock = Lock()
+
+    def allow(self, key: str) -> bool:
+        """True if ``key`` is under its cap for the current window, else False."""
+        now = self._clock()
+        with self._lock:
+            window_start, count = self._hits.get(key, (now, 0))
+            if now - window_start >= self._window:
+                window_start, count = now, 0  # new window
+            count += 1
+            self._hits[key] = (window_start, count)
+            return count <= self._max
+
+
+# Paths that get rate-limited (the sensitive auth + tool surfaces).
+_RATE_LIMITED_PREFIXES = ("/authorize", "/token", "/mcp")
+
+
+def _client_key(scope) -> str:
+    headers = {
+        k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])
+    }
+    fwd = headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    client = scope.get("client")
+    return client[0] if client else "unknown"
+
+
+class RateLimitMiddleware:
+    """ASGI middleware returning 429 when a client exceeds its request budget.
+
+    Applies only to the sensitive auth/tool prefixes so discovery/health are
+    never throttled. Keyed by client IP (X-Forwarded-For first hop when present).
+    """
+
+    def __init__(self, app, limiter: RateLimiter | None = None) -> None:
+        self.app = app
+        self._limiter = limiter or RateLimiter()
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        path = scope.get("path", "")
+        if any(path.startswith(p) for p in _RATE_LIMITED_PREFIXES):
+            if not self._limiter.allow(_client_key(scope)):
+                from src.audit_log import audit
+
+                audit(
+                    "rate_limit.throttled",
+                    outcome="throttled",
+                    path=path,
+                    client=_client_key(scope),
+                )
+                body = b'{"error":"rate_limited","error_description":"too many requests"}'
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 429,
+                        "headers": [
+                            (b"content-type", b"application/json"),
+                            (b"content-length", str(len(body)).encode("ascii")),
+                            (b"retry-after", b"60"),
+                        ],
+                    }
+                )
+                await send({"type": "http.response.body", "body": body})
+                return
+        await self.app(scope, receive, send)
 
 
 # --------------------------------------------------------------------------- #

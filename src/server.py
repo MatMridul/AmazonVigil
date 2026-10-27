@@ -335,7 +335,12 @@ def build_asgi_app():
     from starlette.requests import Request
     from starlette.responses import JSONResponse
 
-    from src.mcp_auth import BearerAuthMiddleware, auth_enforced, default_server
+    from src.mcp_auth import (
+        BearerAuthMiddleware,
+        RateLimitMiddleware,
+        auth_enforced,
+        default_server,
+    )
 
     auth = default_server()
     app = mcp.streamable_http_app()
@@ -355,8 +360,11 @@ def build_asgi_app():
 
     # SEC.1 — deny-by-default bearer enforcement at the transport layer. Every
     # request except discovery/health must carry a valid Bearer, so no tool can
-    # be reached unauthenticated. Added last so it wraps the whole app.
+    # be reached unauthenticated.
     app.add_middleware(BearerAuthMiddleware, server=auth)
+    # Rate limiting OUTERMOST (add_middleware is LIFO — last added runs first) so
+    # a flood of invalid-token requests is throttled before any auth work.
+    app.add_middleware(RateLimitMiddleware)
     return app
 
 

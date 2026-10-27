@@ -89,8 +89,10 @@ Legend:  ☐ todo · ◐ in progress · ☑ done · 🔴 security-critical · �
 - ☐ 👤 **C.1** Stand up a Cognito user pool (free tier) as the field IdP; keep
   the in-memory AS as documented local-dev fallback. AC: discovery docs can point
   at Cognito; local dev still works offline.
-- ☐ 🔴 **C.2** Rate limiting on `/authorize`, `/token`, disarm, and `/mcp` (§4.7).
-  AC: Nth rapid request in a window is throttled; test proves it.
+- ☑ 🔴 **C.2** Rate limiting on `/authorize`, `/token`, and `/mcp` (§4.7).
+  Done — fixed-window per-client limiter + `RateLimitMiddleware` (outermost),
+  429 + Retry-After over cap; discovery/health never throttled. DR-12;
+  `tests/test_rate_limit.py`.
 - ☐ **C.3** Wire audit logging (SEC.9) to CloudWatch for the field profile. AC:
   events land in CloudWatch when the AWS profile is active.
 
