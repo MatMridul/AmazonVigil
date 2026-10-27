@@ -15,6 +15,7 @@ import base64
 import json
 import os
 import re
+from typing import Any
 
 from src.core.state_machine import classify_score, recommended_action
 from src.core.types import (
@@ -49,7 +50,7 @@ class BedrockThreatEvaluator:
         if mock is None:
             mock = os.getenv("VIGIL_MODE", "simulation").lower() != "live"
         self.mock = mock
-        self._client = None  # lazily created only in live mode
+        self._client: Any = None  # lazily created only in live mode (boto3 client)
 
     # ----------------------------------------------------------------- #
     # Public API

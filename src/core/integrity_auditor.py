@@ -128,14 +128,14 @@ def preprocess_frame(image_bytes: bytes) -> bytes:
     if not image_bytes:
         raise ValueError("image_bytes must be non-empty")
 
-    with Image.open(io.BytesIO(image_bytes)) as img:
-        img = img.convert("RGB")
+    with Image.open(io.BytesIO(image_bytes)) as src:
+        img = src.convert("RGB")
         width, height = img.size
 
         scale = min(MAX_WIDTH / width, MAX_HEIGHT / height, 1.0)  # <=1 → downscale only
         if scale < 1.0:
             new_size = (max(1, round(width * scale)), max(1, round(height * scale)))
-            img = img.resize(new_size, Image.BICUBIC)
+            img = img.resize(new_size, Image.Resampling.BICUBIC)
 
         out = io.BytesIO()
         img.save(out, format="WEBP", quality=WEBP_QUALITY, method=4)
