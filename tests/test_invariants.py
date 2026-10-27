@@ -39,6 +39,7 @@ _ALL_MODES = list(GuardMode)
 
 # --- I1: silence-under-duress --------------------------------------------- #
 
+
 def test_duress_permits_zero_actuators_at_every_level():
     for level in _ALL_LEVELS:
         assert permitted_actuators(GuardMode.SILENT_DURESS, level) == (), (
@@ -51,8 +52,11 @@ def test_duress_transition_is_silent_even_at_critical():
     # resulting plan still fires nothing audible/visible.
     sm = StateMachine(mode=GuardMode.SILENT_DURESS)
     signals = ThreatSignals(
-        weapon_detected=True, distress_flag=True,
-        motion_indicator=True, visual_indicator=True, acoustic_indicator=True,
+        weapon_detected=True,
+        distress_flag=True,
+        motion_indicator=True,
+        visual_indicator=True,
+        acoustic_indicator=True,
     )
     t = sm.evaluate(1.0, signals, now=0.0)
     assert t.is_silent is True
@@ -66,6 +70,7 @@ def test_duress_below_dispatch_is_silent_pass():
 
 
 # --- I2: no auto-911 ------------------------------------------------------ #
+
 
 def test_cad_packet_is_always_staged_never_sent():
     packet = build_cad_packet("INC-INV-1", threat_summary="test")
@@ -86,6 +91,7 @@ def test_cad_staging_requires_human_window_not_auto_send():
 
 
 # --- I3: L3 corroboration gate -------------------------------------------- #
+
 
 def test_uncorroborated_l3_is_held_to_l2():
     # A top-band score with NO corroboration must not stand at L3.
