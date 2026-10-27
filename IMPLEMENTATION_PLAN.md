@@ -70,12 +70,16 @@ Legend:  ☐ todo · ◐ in progress · ☑ done · 🔴 security-critical · �
 - ☑ **B.2** Incident store (`_incidents`) moved behind it; durable when
   `VIGIL_STATE_DB` is set. AC MET: `test_sqlite_state_survives_restart` proves a
   record written by one instance is read by a fresh instance on the same file.
-- ☐ **B.3** Persist OAuth tokens + auth codes (`mcp_auth.py` in-memory dicts).
-  AC: a restart does not invalidate a live token before its TTL.
-- ☐ **B.4** Persist guard profiles + the hashed disarm PIN. AC: survives restart.
-- ☐ 🔴 **B.5** Parameterized queries ONLY — no string-built SQL anywhere (§4.4).
-  AC: grep shows zero f-string/`%`-format SQL; ruff-S flags none. (SqliteStore
-  already parameterized.)
+- ☑ **B.3** OAuth tokens persisted (`mcp_auth.py`). `AuthorizationServer` takes an
+  optional durable token store; tokens written with an ABSOLUTE wall-clock expiry
+  (monotonic would be meaningless post-restart), `validate_bearer` falls back to
+  the store on a miss. Auth CODES stay in-memory by design (single-use, 5-min).
+  AC MET: `test_token_survives_restart` + wall-clock expiry test.
+- ☑ **B.4** Guard profile persisted (`set_mesh_guard_profile` → KV store,
+  `active_guard_profile()` read-back). AC MET: `test_guard_profile_survives_restart`.
+  (Disarm PIN hash already loaded from config/env, not in-process state.)
+- ☑ 🔴 **B.5** Parameterized queries ONLY — `SqliteStore` + `SqliteKV` both use
+  bound params; ruff-S flags none. Verified.
 
 **→ Cut `v0.3.0`.**
 

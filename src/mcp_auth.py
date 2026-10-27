@@ -35,6 +35,10 @@ import secrets
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.store import KeyValueStore
 
 # PKCE (RFC 7636) — Alexa+ requires the S256 method.
 CODE_CHALLENGE_METHOD = "S256"
@@ -121,8 +125,16 @@ class AuthorizationServer:
     issuer: str
     resource_uri: str
     clock: Callable[[], float] = time.monotonic
+    # B.3 — optional durable token store. When set, issued access tokens are
+    # also written here with an ABSOLUTE wall-clock expiry, so a restart does not
+    # drop live sessions. Auth CODES stay in-memory by design: they are single-
+    # use and 5-min-lived, so surviving a restart buys nothing and adds risk.
+    token_store: KeyValueStore | None = None
+    wall_clock: Callable[[], float] = time.time
     _codes: dict[str, _AuthCode] = field(default_factory=dict)
     _tokens: dict[str, _AccessToken] = field(default_factory=dict)
+
+    _TOKEN_NS = "oauth_token"  # noqa: S105 - KV namespace label, not a secret
 
     # --- discovery ---------------------------------------------------------- #
     def prm_document(self) -> dict:
@@ -174,6 +186,18 @@ class AuthorizationServer:
         self._tokens[token] = _AccessToken(
             resource=entry.resource, scope=entry.scope, created=self.clock()
         )
+        # B.3 — persist with an absolute wall-clock expiry (monotonic would be
+        # meaningless after a restart). validate_bearer re-reads this on a miss.
+        if self.token_store is not None:
+            self.token_store.put(
+                self._TOKEN_NS,
+                token,
+                {
+                    "resource": entry.resource,
+                    "scope": entry.scope,
+                    "expires_at": self.wall_clock() + ACCESS_TOKEN_TTL,
+                },
+            )
         return {
             "access_token": token,
             "token_type": "Bearer",
@@ -186,27 +210,49 @@ class AuthorizationServer:
         """True iff the Authorization header carries a valid, unexpired Bearer.
 
         Token must be in the header (never the query string), per the checklist.
+        Checks the in-memory table first; on a miss (e.g. after a restart) falls
+        back to the durable token store using an absolute wall-clock expiry.
         """
         if not authorization_header:
             return False
         parts = authorization_header.split(" ", 1)
         if len(parts) != 2 or parts[0].lower() != "bearer":
             return False
-        tok = self._tokens.get(parts[1])
-        if tok is None:
-            return False
-        if self.clock() - tok.created > ACCESS_TOKEN_TTL:
-            del self._tokens[parts[1]]
-            return False
-        return True
+        token = parts[1]
+        tok = self._tokens.get(token)
+        if tok is not None:
+            if self.clock() - tok.created > ACCESS_TOKEN_TTL:
+                del self._tokens[token]
+                return False
+            return True
+        # Not in memory — try the durable store (the restart case).
+        if self.token_store is not None:
+            rec = self.token_store.get(self._TOKEN_NS, token)
+            if rec is None:
+                return False
+            if self.wall_clock() > rec.get("expires_at", 0.0):
+                self.token_store.delete(self._TOKEN_NS, token)
+                return False
+            return True
+        return False
 
 
 def default_server() -> AuthorizationServer:
-    """Build the AS from env (VIGIL_PUBLIC_URL), defaulting to the live tunnel."""
+    """Build the AS from env (VIGIL_PUBLIC_URL), defaulting to the live tunnel.
+
+    B.3: when VIGIL_STATE_DB is set, issued tokens are persisted (wall-clock
+    expiry) so a restart does not log live sessions out; else in-memory only.
+    """
     public = os.environ.get(
         "VIGIL_PUBLIC_URL", "https://thermal-entire-sandbank.ngrok-free.dev"
     ).rstrip("/")
-    return AuthorizationServer(issuer=public, resource_uri=f"{public}/mcp")
+    token_store = None
+    db_path = os.environ.get("VIGIL_STATE_DB", "").strip()
+    if db_path:
+        from src.store import SqliteKV
+
+        token_store = SqliteKV(db_path)
+    return AuthorizationServer(issuer=public, resource_uri=f"{public}/mcp", token_store=token_store)
 
 
 # --------------------------------------------------------------------------- #
