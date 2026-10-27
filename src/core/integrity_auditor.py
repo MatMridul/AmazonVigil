@@ -29,10 +29,10 @@ DUPLEX_DAMPEN_MS = 500
 # Tamper thresholds (SPEC.md §4 A1/A2; docs calibration).
 #  - Spray paint / tape: luminance variance collapses toward 0.
 #  - Laser / IR wash:     >95% of pixels clipped near max (255).
-LUMINANCE_VARIANCE_FLOOR = 25.0   # below this → blinded (Φ_V → 0)
+LUMINANCE_VARIANCE_FLOOR = 25.0  # below this → blinded (Φ_V → 0)
 LUMINANCE_VARIANCE_NOMINAL = 400.0  # at/above this → full optical confidence
-SATURATION_CLIP_THRESHOLD = 250    # per-channel value counted as "clipped"
-SATURATION_CLIP_FRACTION = 0.95    # >95% clipped → laser wash (Φ_V → 0)
+SATURATION_CLIP_THRESHOLD = 250  # per-channel value counted as "clipped"
+SATURATION_CLIP_FRACTION = 0.95  # >95% clipped → laser wash (Φ_V → 0)
 
 
 # --------------------------------------------------------------------------- #

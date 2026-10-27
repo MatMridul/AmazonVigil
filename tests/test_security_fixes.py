@@ -34,7 +34,8 @@ def _valid_bearer(srv: AuthorizationServer) -> str:
     verifier = "v" * 48
     code = srv.authorize(
         code_challenge=compute_s256_challenge(verifier),
-        code_challenge_method="S256", resource=RES,
+        code_challenge_method="S256",
+        resource=RES,
     )
     tok = srv.exchange_code(code=code, code_verifier=verifier, resource=RES)
     return f"Bearer {tok['access_token']}"
@@ -43,6 +44,7 @@ def _valid_bearer(srv: AuthorizationServer) -> str:
 # --------------------------------------------------------------------------- #
 # SEC.1 — authorization guard
 # --------------------------------------------------------------------------- #
+
 
 class _Recorder:
     """Minimal ASGI downstream that records whether it was reached."""
@@ -130,6 +132,7 @@ def test_public_path_allowlist_is_tight():
 # SEC.2 — value-checked PIN with lockout
 # --------------------------------------------------------------------------- #
 
+
 def test_correct_pin_disarms():
     v = PinVerifier(pin_hash=hash_pin("8391"))
     assert v.verify("8391") is True
@@ -142,8 +145,9 @@ def test_wrong_pin_rejected_even_with_valid_format():
 
 def test_lockout_after_max_attempts():
     clk = {"t": 0.0}
-    v = PinVerifier(pin_hash=hash_pin("8391"), max_attempts=5,
-                    lockout_seconds=300.0, clock=lambda: clk["t"])
+    v = PinVerifier(
+        pin_hash=hash_pin("8391"), max_attempts=5, lockout_seconds=300.0, clock=lambda: clk["t"]
+    )
     for _ in range(5):
         assert v.verify("0000") is False
     assert v.is_locked() is True

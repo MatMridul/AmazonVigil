@@ -28,6 +28,7 @@ def _server() -> AuthorizationServer:
 
 # --- PKCE S256 (RFC 7636) ------------------------------------------------- #
 
+
 def test_pkce_s256_roundtrip_matches():
     verifier = "a" * 64
     challenge = compute_s256_challenge(verifier)
@@ -45,6 +46,7 @@ def test_pkce_rejects_empty():
 
 
 # --- Discovery metadata --------------------------------------------------- #
+
 
 def test_prm_document_shape():
     doc = build_prm_document(RES, ISS)
@@ -64,14 +66,13 @@ def test_as_metadata_requires_s256():
 
 # --- Full OAuth 2.1 + PKCE flow ------------------------------------------- #
 
+
 def test_full_authorization_code_pkce_flow():
     srv = _server()
     verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
     challenge = compute_s256_challenge(verifier)
 
-    code = srv.authorize(
-        code_challenge=challenge, code_challenge_method="S256", resource=RES
-    )
+    code = srv.authorize(code_challenge=challenge, code_challenge_method="S256", resource=RES)
     token_resp = srv.exchange_code(code=code, code_verifier=verifier, resource=RES)
 
     assert token_resp["token_type"] == "Bearer"
@@ -89,7 +90,8 @@ def test_authorize_binds_resource():
     srv = _server()
     with pytest.raises(ValueError):
         srv.authorize(
-            code_challenge="x", code_challenge_method="S256",
+            code_challenge="x",
+            code_challenge_method="S256",
             resource="https://evil.test/mcp",
         )
 
@@ -97,9 +99,7 @@ def test_authorize_binds_resource():
 def test_token_exchange_rejects_bad_pkce():
     srv = _server()
     challenge = compute_s256_challenge("the-real-verifier-the-real-verifier-x")
-    code = srv.authorize(
-        code_challenge=challenge, code_challenge_method="S256", resource=RES
-    )
+    code = srv.authorize(code_challenge=challenge, code_challenge_method="S256", resource=RES)
     with pytest.raises(ValueError):
         srv.exchange_code(code=code, code_verifier="not-the-verifier", resource=RES)
 
@@ -109,11 +109,11 @@ def test_token_exchange_rejects_resource_mismatch():
     verifier = "v" * 48
     code = srv.authorize(
         code_challenge=compute_s256_challenge(verifier),
-        code_challenge_method="S256", resource=RES,
+        code_challenge_method="S256",
+        resource=RES,
     )
     with pytest.raises(ValueError):
-        srv.exchange_code(code=code, code_verifier=verifier,
-                          resource="https://evil.test/mcp")
+        srv.exchange_code(code=code, code_verifier=verifier, resource="https://evil.test/mcp")
 
 
 def test_auth_code_is_single_use():
@@ -121,7 +121,8 @@ def test_auth_code_is_single_use():
     verifier = "v" * 48
     code = srv.authorize(
         code_challenge=compute_s256_challenge(verifier),
-        code_challenge_method="S256", resource=RES,
+        code_challenge_method="S256",
+        resource=RES,
     )
     srv.exchange_code(code=code, code_verifier=verifier, resource=RES)
     with pytest.raises(ValueError):
@@ -129,6 +130,7 @@ def test_auth_code_is_single_use():
 
 
 # --- Bearer validation ---------------------------------------------------- #
+
 
 def test_bearer_rejects_missing_and_malformed():
     srv = _server()

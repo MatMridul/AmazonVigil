@@ -14,7 +14,6 @@ from __future__ import annotations
 import os
 import time
 from threading import Lock
-from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -22,6 +21,7 @@ from src.adapters.bedrock_analyzer import BedrockThreatEvaluator
 from src.core.cad_dispatcher import build_cad_packet
 from src.core.integrity_auditor import compute_optical_integrity
 from src.core.types import IntegrityVector, PerimeterEvent, WearerBioContext
+from src.mcp_auth import default_pin_verifier
 
 # Idempotency dedup window (governance rule 5).
 IDEMPOTENCY_TTL_SECONDS = 15.0
@@ -90,8 +90,6 @@ _evaluator = BedrockThreatEvaluator()
 
 # SEC.2 — value-checked, lockout-protected disarm-PIN verifier (holds only a
 # hash, loaded from config; never a literal PIN).
-from src.mcp_auth import default_pin_verifier
-
 _pin_verifier = default_pin_verifier()
 
 # Minimal in-memory incident store for Phase 1 reasoning/disarm tools.
@@ -250,7 +248,7 @@ async def disarm_perimeter_alert(incident_id: str, disarm_pin: str) -> dict:
 # 7. explain_incident_reasoning
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-async def explain_incident_reasoning(incident_id: Optional[str] = None) -> dict:
+async def explain_incident_reasoning(incident_id: str | None = None) -> dict:
     """Return a plain-English incident summary and justification."""
     if incident_id is None:
         return {
@@ -272,7 +270,7 @@ async def explain_incident_reasoning(incident_id: Optional[str] = None) -> dict:
 # 8. set_mesh_guard_profile
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-async def set_mesh_guard_profile(mode: str, duration_hours: Optional[int] = None) -> dict:
+async def set_mesh_guard_profile(mode: str, duration_hours: int | None = None) -> dict:
     """Adjust the operational profile (Daytime Ambient | Night Sentry |
     Vacation | Duress)."""
     valid = {"daytime_ambient", "night_sentry", "vacation", "duress"}
@@ -301,21 +299,17 @@ def build_asgi_app():
     auth = default_server()
     app = mcp.streamable_http_app()
 
-    async def prm(_request: "Request") -> "JSONResponse":
+    async def prm(_request: Request) -> JSONResponse:
         return JSONResponse(auth.prm_document())
 
-    async def as_meta(_request: "Request") -> "JSONResponse":
+    async def as_meta(_request: Request) -> JSONResponse:
         return JSONResponse(auth.as_metadata())
 
-    async def healthz(_request: "Request") -> "JSONResponse":
+    async def healthz(_request: Request) -> JSONResponse:
         return JSONResponse({"status": "ok", "auth_enforced": auth_enforced()})
 
-    app.router.add_route(
-        "/.well-known/oauth-protected-resource", prm, methods=["GET"]
-    )
-    app.router.add_route(
-        "/.well-known/oauth-authorization-server", as_meta, methods=["GET"]
-    )
+    app.router.add_route("/.well-known/oauth-protected-resource", prm, methods=["GET"])
+    app.router.add_route("/.well-known/oauth-authorization-server", as_meta, methods=["GET"])
     app.router.add_route("/healthz", healthz, methods=["GET"])
 
     # SEC.1 — deny-by-default bearer enforcement at the transport layer. Every

@@ -30,6 +30,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from src.mcp_auth import PinVerifier, hash_pin
 from src.pipeline.ingest import DemoAdapter, VigilPipeline
 from src.simulator.scenario_runner import load_scenarios
 
@@ -41,8 +42,6 @@ _DEFAULT_PORT = 5176
 # stored HASH, never a literal. Overridable via VIGIL_DISARM_PIN_HASH /
 # VIGIL_DISARM_PIN; falls back to a hashed dev PIN only for the offline demo
 # surface (this server binds 127.0.0.1 — not an internet-facing secret).
-from src.mcp_auth import PinVerifier, hash_pin
-
 _pin_verifier = PinVerifier(
     pin_hash=(
         os.environ.get("VIGIL_DISARM_PIN_HASH", "").strip()
@@ -53,16 +52,41 @@ _pin_verifier = PinVerifier(
 # Static descriptors for the mesh panel. Honest real-vs-MODELED status per node:
 # the console shows which organs are live-capable and which are MODELED here.
 _MESH_NODES = [
-    {"id": "ring", "name": "RING_PRO_2", "role": "perimeter eyes/ears",
-     "status": "ADAPTER_READY", "mode": "live-capable (API/simulator)"},
-    {"id": "bee", "name": "BEE_WEAR", "role": "resident bio-state",
-     "status": "MODELED", "mode": "no device — honest simulated contract"},
-    {"id": "firetv", "name": "FIRE_TV", "role": "deterrence actuator",
-     "status": "ADAPTER_READY", "mode": "live-capable (Fire TV Stick)"},
-    {"id": "echo", "name": "ECHO_BEDROOM", "role": "Alexa+ brain / voice",
-     "status": "ADAPTER_READY", "mode": "live-capable (Echo + MCP)"},
-    {"id": "phone", "name": "PHONE_A35", "role": "human CAD authorization",
-     "status": "ADAPTER_READY", "mode": "live-capable (Android)"},
+    {
+        "id": "ring",
+        "name": "RING_PRO_2",
+        "role": "perimeter eyes/ears",
+        "status": "ADAPTER_READY",
+        "mode": "live-capable (API/simulator)",
+    },
+    {
+        "id": "bee",
+        "name": "BEE_WEAR",
+        "role": "resident bio-state",
+        "status": "MODELED",
+        "mode": "no device — honest simulated contract",
+    },
+    {
+        "id": "firetv",
+        "name": "FIRE_TV",
+        "role": "deterrence actuator",
+        "status": "ADAPTER_READY",
+        "mode": "live-capable (Fire TV Stick)",
+    },
+    {
+        "id": "echo",
+        "name": "ECHO_BEDROOM",
+        "role": "Alexa+ brain / voice",
+        "status": "ADAPTER_READY",
+        "mode": "live-capable (Echo + MCP)",
+    },
+    {
+        "id": "phone",
+        "name": "PHONE_A35",
+        "role": "human CAD authorization",
+        "status": "ADAPTER_READY",
+        "mode": "live-capable (Android)",
+    },
 ]
 
 
@@ -76,25 +100,31 @@ def _scenario_payload(scenario_id: str) -> dict:
     sig = telem.signals
     integrity = sig.integrity
     payload = result.as_dict()
-    payload.update({
-        "source": telem.source,
-        "simulated": telem.simulated,
-        "score": telem.score,
-        "ingest": fixture.get("ingest", {}),
-        "subject": fixture.get("subject"),
-        "host_state": fixture.get("host_state"),
-        "integrity": {
-            "phi_m": integrity.phi_m, "phi_v": integrity.phi_v,
-            "phi_a": integrity.phi_a, "phi_net": integrity.phi_net,
-        } if integrity else None,
-        "signals": {
-            "weapon_detected": sig.weapon_detected,
-            "masked_near_entry": sig.masked_near_entry,
-            "breach_acoustics": sig.breach_acoustics,
-            "distress_flag": sig.distress_flag,
-            "corroboration_count": sig.corroboration_count(),
-        },
-    })
+    payload.update(
+        {
+            "source": telem.source,
+            "simulated": telem.simulated,
+            "score": telem.score,
+            "ingest": fixture.get("ingest", {}),
+            "subject": fixture.get("subject"),
+            "host_state": fixture.get("host_state"),
+            "integrity": {
+                "phi_m": integrity.phi_m,
+                "phi_v": integrity.phi_v,
+                "phi_a": integrity.phi_a,
+                "phi_net": integrity.phi_net,
+            }
+            if integrity
+            else None,
+            "signals": {
+                "weapon_detected": sig.weapon_detected,
+                "masked_near_entry": sig.masked_near_entry,
+                "breach_acoustics": sig.breach_acoustics,
+                "distress_flag": sig.distress_flag,
+                "corroboration_count": sig.corroboration_count(),
+            },
+        }
+    )
     return payload
 
 
@@ -136,10 +166,13 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             if path == "/api/scenarios":
                 catalog = load_scenarios()
-                self._json(200, [
-                    {"id": s["id"], "title": s["title"], "mode": s["mode"]}
-                    for s in catalog.values()
-                ])
+                self._json(
+                    200,
+                    [
+                        {"id": s["id"], "title": s["title"], "mode": s["mode"]}
+                        for s in catalog.values()
+                    ],
+                )
                 return
             if path.startswith("/api/scenario/"):
                 sid = path.rsplit("/", 1)[-1]

@@ -30,7 +30,6 @@ import os
 import shutil
 import subprocess
 from dataclasses import dataclass
-from typing import Optional
 
 from src.core.state_machine import GuardMode, ThreatSignals
 from src.core.types import HostState, IntegrityVector, WearerBioContext
@@ -46,7 +45,7 @@ class BeeReading:
 
     user_id: str
     is_asleep: bool
-    minutes_since_last_speech: Optional[int]
+    minutes_since_last_speech: int | None
     device_tier: str  # "bee_pioneer" | "apple_watch"
     on_wrist: bool
     modeled: bool
@@ -70,12 +69,15 @@ class BeeAdapter(IngestAdapter):
 
     # --- real CLI-shaped read (works if the CLI is present + authed) ------- #
 
-    def _run_bee_now(self) -> Optional[dict]:
+    def _run_bee_now(self) -> dict | None:
         """Invoke ``bee now --json`` and return parsed JSON, or None on failure."""
         try:
-            proc = subprocess.run(
+            proc = subprocess.run(  # noqa: S603 - fixed arg list, no shell, cli_name is a constant (not user input)
                 [self.cli_name, "now", "--json"],
-                capture_output=True, text=True, timeout=10, check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
             )
             if proc.returncode != 0 or not proc.stdout.strip():
                 return None
@@ -84,7 +86,7 @@ class BeeAdapter(IngestAdapter):
             return None
 
     @staticmethod
-    def infer_sleep(minutes_since_last_speech: Optional[int]) -> bool:
+    def infer_sleep(minutes_since_last_speech: int | None) -> bool:
         """UX-04 sleep inference: >1h conversational silence implies asleep."""
         if minutes_since_last_speech is None:
             return False
@@ -106,8 +108,12 @@ class BeeAdapter(IngestAdapter):
                 )
         # MODELED fallback — honest default: asleep, off-wrist fail-safe (DMP D1).
         return BeeReading(
-            user_id=self.user_id, is_asleep=True, minutes_since_last_speech=180,
-            device_tier="bee_pioneer", on_wrist=False, modeled=True,
+            user_id=self.user_id,
+            is_asleep=True,
+            minutes_since_last_speech=180,
+            device_tier="bee_pioneer",
+            on_wrist=False,
+            modeled=True,
         )
 
     def to_bio_context(self, reading: BeeReading) -> WearerBioContext:
@@ -123,7 +129,7 @@ class BeeAdapter(IngestAdapter):
 
     # --- IngestAdapter contract -------------------------------------------- #
 
-    def telemetry(self, selector: Optional[str] = None) -> Telemetry:
+    def telemetry(self, selector: str | None = None) -> Telemetry:
         """Bio-state snapshot. Bee contributes host-state context, not a threat
         score, so score stays 0.0 and the perimeter sensors drive escalation."""
         reading = self.read_bio()

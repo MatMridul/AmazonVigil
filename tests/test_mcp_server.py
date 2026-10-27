@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from src.core.integrity_auditor import compute_optical_integrity, preprocess_frame
 from src.adapters.bedrock_analyzer import BedrockThreatEvaluator
+from src.core.integrity_auditor import compute_optical_integrity, preprocess_frame
 from src.core.types import HostState, IntegrityVector, ThreatLevel, WearerBioContext
 from src.server import (
     IdempotencyCache,
@@ -58,8 +58,7 @@ async def test_empty_token_never_deduped():
 # --------------------------------------------------------------------------- #
 async def test_audit_perimeter_event_clean():
     out = await audit_perimeter_event(
-        {"camera_id": "cam-1", "pir_motion": True, "acoustic_db": 30.0,
-         "image_bytes": _frame(-1)}
+        {"camera_id": "cam-1", "pir_motion": True, "acoustic_db": 30.0, "image_bytes": _frame(-1)}
     )
     assert out["optical_tampered"] is False
     assert out["integrity_vector"]["phi_v"] == pytest.approx(1.0)
@@ -114,12 +113,33 @@ async def test_cad_packet_has_valid_sha256():
 
 
 async def test_disarm_valid_pin():
+    # SEC.2: disarm now verifies the PIN VALUE against the server's configured
+    # hash, not just the format. Point the server verifier at a known PIN.
+    import src.server as server
+    from src.mcp_auth import PinVerifier, hash_pin
+
+    server._pin_verifier = PinVerifier(pin_hash=hash_pin("8391"))
     await format_emergency_cad_packet("INC-200")
-    out = await disarm_perimeter_alert("INC-200", "1234")
+    out = await disarm_perimeter_alert("INC-200", "8391")
     assert out["status"] == "disarmed"
 
 
+async def test_disarm_rejects_wrong_value_even_with_valid_format():
+    # The core SEC.2 improvement: a well-formed but WRONG pin must not disarm.
+    import src.server as server
+    from src.mcp_auth import PinVerifier, hash_pin
+
+    server._pin_verifier = PinVerifier(pin_hash=hash_pin("8391"))
+    out = await disarm_perimeter_alert("INC-202", "1234")
+    assert out["status"] == "rejected"
+    assert out["reason"] == "invalid_pin"
+
+
 async def test_disarm_rejects_bad_pin():
+    import src.server as server
+    from src.mcp_auth import PinVerifier, hash_pin
+
+    server._pin_verifier = PinVerifier(pin_hash=hash_pin("8391"))
     out = await disarm_perimeter_alert("INC-201", "12")
     assert out["status"] == "rejected"
 

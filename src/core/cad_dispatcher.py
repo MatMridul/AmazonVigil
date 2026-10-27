@@ -20,7 +20,6 @@ import hmac
 import json
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 from src.core.types import CadPacket
 
@@ -38,11 +37,11 @@ def build_cad_packet(
     incident_id: str,
     *,
     threat_summary: str = "",
-    gps_lat: Optional[float] = None,
-    gps_lon: Optional[float] = None,
-    evidence_timeline: Optional[list[str]] = None,
-    photographic_stills: Optional[list[str]] = None,
-    created_at: Optional[float] = None,
+    gps_lat: float | None = None,
+    gps_lon: float | None = None,
+    evidence_timeline: list[str] | None = None,
+    photographic_stills: list[str] | None = None,
+    created_at: float | None = None,
 ) -> CadPacket:
     """Compile a staged NENA/RapidSOS CAD manifest for ``incident_id``."""
     if not incident_id:
@@ -78,7 +77,7 @@ def build_cad_packet(
     )
 
 
-def verify_disarm_pin(disarm_pin: str, expected_pin: Optional[str] = None) -> bool:
+def verify_disarm_pin(disarm_pin: str, expected_pin: str | None = None) -> bool:
     """Validate a 4-digit disarm PIN.
 
     Format rule: exactly 4 ASCII digits. When ``expected_pin`` is supplied the
@@ -120,7 +119,7 @@ class CadStaging:
         """True once the buffer has elapsed and the packet was not cancelled."""
         return not self.cancelled and self.remaining(now=now) <= 0.0
 
-    def cancel(self, disarm_pin: str, *, now: float, expected_pin: Optional[str] = None) -> bool:
+    def cancel(self, disarm_pin: str, *, now: float, expected_pin: str | None = None) -> bool:
         """Abort the staged dispatch if the PIN is valid and still within buffer.
 
         Returns True on a successful cancellation, False if the PIN is invalid or
@@ -137,7 +136,7 @@ class CadStaging:
 def stage_cad_dispatch(
     incident_id: str,
     *,
-    staged_at: Optional[float] = None,
+    staged_at: float | None = None,
     buffer_seconds: float = CANCEL_BUFFER_SECONDS,
     **packet_kwargs,
 ) -> CadStaging:

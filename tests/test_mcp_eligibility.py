@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 CANONICAL_TOOLS = {
     "audit_perimeter_event",
     "query_wearer_state",
@@ -32,6 +30,7 @@ def test_server_is_the_real_fastmcp_sdk_object():
     from mcp.server.fastmcp import FastMCP
 
     from src.server import mcp
+
     # Not a stub/mock — the genuine SDK class (the 'calls the tech' bar).
     assert isinstance(mcp, FastMCP)
 
@@ -69,5 +68,6 @@ def test_entry_point_is_streamable_http():
     import inspect
 
     from src import server
+
     src_text = inspect.getsource(server.main)
-    assert 'streamable-http' in src_text
+    assert "streamable-http" in src_text

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import time
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -30,7 +29,7 @@ class ThreatLevel(str, Enum):
     L3_CRITICAL = "L3_CRITICAL"
 
     @classmethod
-    def from_alias(cls, value: str) -> "ThreatLevel":
+    def from_alias(cls, value: str) -> ThreatLevel:
         """Resolve either a canonical name or a Phase 1 prompt alias (DR-03)."""
         aliases = {
             "L0_IGNORE": cls.L0_SAFE,
@@ -66,7 +65,7 @@ class AudioSentiment(str, Enum):
 class MeshAction(str, Enum):
     """Recommended coordinated mesh action (SPEC.md §5.2)."""
 
-    SILENT_PASS = "SILENT_PASS"
+    SILENT_PASS = "SILENT_PASS"  # noqa: S105 - enum action value, not a secret
     NOTIFY_HOST = "NOTIFY_HOST"
     WAKE_HOST_AND_DETER = "WAKE_HOST_AND_DETER"
     DISPATCH_EMERGENCY = "DISPATCH_EMERGENCY"
@@ -124,23 +123,23 @@ class PerimeterEvent(BaseModel):
 
     timestamp: float = Field(default_factory=time.time, description="Unix epoch seconds")
     camera_id: str = Field(..., min_length=1)
-    image_path: Optional[str] = Field(
+    image_path: str | None = Field(
         default=None, description="Path to raw frame on disk (mutually usable with image_bytes)"
     )
-    image_bytes: Optional[bytes] = Field(
+    image_bytes: bytes | None = Field(
         default=None, description="Raw frame buffer; preferred for in-memory pipelines"
     )
     pir_motion: bool = Field(default=False, description="Binary PIR trip (M ∈ {0,1})")
     acoustic_db: float = Field(
         default=0.0, ge=0.0, le=194.0, description="Ambient acoustic level in dB SPL"
     )
-    optical_integrity: Optional[float] = Field(
+    optical_integrity: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Pre-computed Φ_V if available"
     )
 
     @field_validator("image_bytes")
     @classmethod
-    def _non_empty_bytes(cls, v: Optional[bytes]) -> Optional[bytes]:
+    def _non_empty_bytes(cls, v: bytes | None) -> bytes | None:
         if v is not None and len(v) == 0:
             raise ValueError("image_bytes must be non-empty when provided")
         return v
@@ -156,14 +155,16 @@ class WearerBioContext(BaseModel):
 
     user_id: str = Field(..., min_length=1)
     host_state: HostState = Field(default=HostState.UNKNOWN)
-    heart_rate: Optional[int] = Field(
-        default=None, ge=20, le=250,
+    heart_rate: int | None = Field(
+        default=None,
+        ge=20,
+        le=250,
         description="BPM — Tier B (Apple Watch/HealthKit) only; Bee Pioneer has no PPG",
     )
     is_asleep: bool = Field(
         default=False, description="H_asleep: conversational silence >1h + accelerometer stillness"
     )
-    minutes_since_last_speech: Optional[int] = Field(
+    minutes_since_last_speech: int | None = Field(
         default=None, ge=0, description="Derived from `bee now --json` utterance timestamps"
     )
     motion_level: float = Field(
@@ -197,9 +198,11 @@ class CadPacket(BaseModel):
     incident_id: str = Field(..., min_length=1)
     created_at: float = Field(default_factory=time.time)
     nena_format: str = Field(default="RapidSOS")
-    sha256: str = Field(..., min_length=64, max_length=64, description="Integrity hash of the manifest")
-    gps_lat: Optional[float] = Field(default=None, ge=-90.0, le=90.0)
-    gps_lon: Optional[float] = Field(default=None, ge=-180.0, le=180.0)
+    sha256: str = Field(
+        ..., min_length=64, max_length=64, description="Integrity hash of the manifest"
+    )
+    gps_lat: float | None = Field(default=None, ge=-90.0, le=90.0)
+    gps_lon: float | None = Field(default=None, ge=-180.0, le=180.0)
     evidence_timeline: list[str] = Field(default_factory=list)
     photographic_stills: list[str] = Field(default_factory=list)
     threat_summary: str = Field(default="")
@@ -222,7 +225,7 @@ class ThreatAssessment(BaseModel):
     recommended_mesh_action: MeshAction
     justification: str = Field(..., min_length=1, description="Chain-of-thought rationale")
     recommended_actuators: list[str] = Field(default_factory=list)
-    cad_packet: Optional[CadPacket] = Field(default=None)
+    cad_packet: CadPacket | None = Field(default=None)
 
     @field_validator("threat_level", mode="before")
     @classmethod

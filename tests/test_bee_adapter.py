@@ -28,7 +28,9 @@ def test_forced_modeled_is_not_cli_available():
     assert BeeAdapter().cli_available is False
 
 
-@pytest.mark.parametrize("mins,expected", [(None, False), (0, False), (59, False), (60, True), (180, True)])
+@pytest.mark.parametrize(
+    "mins,expected", [(None, False), (0, False), (59, False), (60, True), (180, True)]
+)
 def test_sleep_inference_threshold(mins, expected):
     # UX-04: >=60 min conversational silence implies asleep.
     assert BeeAdapter.infer_sleep(mins) is expected

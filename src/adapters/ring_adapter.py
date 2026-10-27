@@ -29,7 +29,6 @@ import hashlib
 import hmac
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 from src.core.state_machine import GuardMode, ThreatSignals
 from src.core.types import IntegrityVector
@@ -66,9 +65,9 @@ class RingAdapter(IngestAdapter):
     def __init__(
         self,
         *,
-        bearer_token: Optional[str] = None,
-        webhook_secret: Optional[str] = None,
-        api_base: Optional[str] = None,
+        bearer_token: str | None = None,
+        webhook_secret: str | None = None,
+        api_base: str | None = None,
     ) -> None:
         self.bearer_token = bearer_token or os.environ.get("RING_BEARER_TOKEN")
         self.webhook_secret = webhook_secret or os.environ.get("RING_WEBHOOK_SECRET")
@@ -89,9 +88,7 @@ class RingAdapter(IngestAdapter):
         """
         if not self.webhook_secret:
             return False
-        expected = hmac.new(
-            self.webhook_secret.encode("utf-8"), body, hashlib.sha256
-        ).hexdigest()
+        expected = hmac.new(self.webhook_secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
         return hmac.compare_digest(expected, signature)
 
     def whep_session_url(self, device_id: str) -> str:
@@ -111,7 +108,7 @@ class RingAdapter(IngestAdapter):
 
     # --- IngestAdapter contract -------------------------------------------- #
 
-    def telemetry(self, selector: Optional[str] = None) -> Telemetry:
+    def telemetry(self, selector: str | None = None) -> Telemetry:
         """Return a normalized telemetry snapshot from the latest Ring event.
 
         Live mode would pull the newest webhook event; with no token we emit an
@@ -122,14 +119,22 @@ class RingAdapter(IngestAdapter):
             # Live wiring lands with the webhook receiver; until then, the
             # honest statement is that no live event is buffered yet.
             event = RingEvent(
-                device_id="ring_front", kind="motion", classification="unknown",
-                acoustic_db=0.0, verified_signature=True, simulated=False,
+                device_id="ring_front",
+                kind="motion",
+                classification="unknown",
+                acoustic_db=0.0,
+                verified_signature=True,
+                simulated=False,
             )
             simulated = False
         else:
             event = RingEvent(
-                device_id="ring_front", kind="motion", classification="human",
-                acoustic_db=0.0, verified_signature=False, simulated=True,
+                device_id="ring_front",
+                kind="motion",
+                classification="human",
+                acoustic_db=0.0,
+                verified_signature=False,
+                simulated=True,
             )
             simulated = True
 
@@ -143,7 +148,7 @@ class RingAdapter(IngestAdapter):
         return Telemetry(
             scenario_id=f"ring:{event.device_id}:{event.kind}",
             title=f"Ring {event.kind} · {event.classification}"
-                  + (" (simulated)" if simulated else " (live)"),
+            + (" (simulated)" if simulated else " (live)"),
             mode=GuardMode.NIGHT_SENTRY,
             score=0.0,  # the engine + Bedrock set the real score downstream
             signals=signals,

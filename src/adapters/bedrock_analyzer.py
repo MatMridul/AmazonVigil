@@ -15,7 +15,6 @@ import base64
 import json
 import os
 import re
-from typing import Optional
 
 from src.core.state_machine import classify_score, recommended_action
 from src.core.types import (
@@ -41,8 +40,8 @@ class BedrockThreatEvaluator:
         self,
         *,
         model_id: str = DEFAULT_MODEL_ID,
-        region: Optional[str] = None,
-        mock: Optional[bool] = None,
+        region: str | None = None,
+        mock: bool | None = None,
     ) -> None:
         self.model_id = model_id
         self.region = region or os.getenv("AWS_REGION", "us-east-1")
@@ -58,7 +57,7 @@ class BedrockThreatEvaluator:
     def evaluate(
         self,
         *,
-        frame_webp: Optional[bytes],
+        frame_webp: bytes | None,
         audio_transcript: str,
         acoustic_db: float,
         bio: WearerBioContext,
@@ -96,7 +95,7 @@ class BedrockThreatEvaluator:
     def build_prompt(
         self,
         *,
-        frame_webp: Optional[bytes],
+        frame_webp: bytes | None,
         audio_transcript: str,
         acoustic_db: float,
         bio: WearerBioContext,

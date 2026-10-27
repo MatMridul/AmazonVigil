@@ -51,8 +51,13 @@ def test_webhook_unverifiable_without_secret():
 def test_parse_event_normalizes_payload():
     a = RingAdapter()
     ev = a.parse_event(
-        {"device_id": "d1", "kind": "ding", "classification": "human",
-         "acoustic_db": 42.0, "verified_signature": True},
+        {
+            "device_id": "d1",
+            "kind": "ding",
+            "classification": "human",
+            "acoustic_db": 42.0,
+            "verified_signature": True,
+        },
         simulated=False,
     )
     assert isinstance(ev, RingEvent)

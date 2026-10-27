@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
-from typing import Optional
 
 from src.core.state_machine import GuardMode, StateMachine, ThreatSignals
 from src.core.types import IntegrityVector, MeshAction
@@ -69,7 +68,7 @@ class IngestAdapter(abc.ABC):
     source_name: str = "abstract"
 
     @abc.abstractmethod
-    def telemetry(self, selector: Optional[str] = None) -> Telemetry:
+    def telemetry(self, selector: str | None = None) -> Telemetry:
         """Return the current normalized telemetry snapshot.
 
         ``selector`` lets a source pick among several readings (the demo
@@ -96,7 +95,7 @@ class DemoAdapter(IngestAdapter):
         """Catalog order — what the UI scenario selector lists."""
         return list(self._catalog)
 
-    def telemetry(self, selector: Optional[str] = None) -> Telemetry:
+    def telemetry(self, selector: str | None = None) -> Telemetry:
         if selector is None:
             selector = next(iter(self._catalog))
         # Reuse the runner's own fixture resolution via run_scenario's catalog.
@@ -114,14 +113,10 @@ class DemoAdapter(IngestAdapter):
     def _resolve(self, selector: str) -> dict:
         if selector in self._catalog:
             return self._catalog[selector]
-        matches = [
-            sid for sid in self._catalog if sid.split("_", 1)[0] == selector.zfill(2)
-        ]
+        matches = [sid for sid in self._catalog if sid.split("_", 1)[0] == selector.zfill(2)]
         if len(matches) == 1:
             return self._catalog[matches[0]]
-        raise KeyError(
-            f"unknown scenario '{selector}' (known: {sorted(self._catalog)})"
-        )
+        raise KeyError(f"unknown scenario '{selector}' (known: {sorted(self._catalog)})")
 
 
 class LiveAdapter(IngestAdapter):
@@ -139,7 +134,7 @@ class LiveAdapter(IngestAdapter):
     def __init__(self, *, device_source: str = "live") -> None:
         self._device_source = device_source
 
-    def telemetry(self, selector: Optional[str] = None) -> Telemetry:
+    def telemetry(self, selector: str | None = None) -> Telemetry:
         # No live device wired yet → honest simulated baseline (quiet perimeter).
         integrity = IntegrityVector(phi_m=1.0, phi_v=1.0, phi_a=1.0, phi_net=1.0)
         signals = ThreatSignals(integrity=integrity)
@@ -166,7 +161,7 @@ class VigilPipeline:
     def __init__(self, adapter: IngestAdapter) -> None:
         self.adapter = adapter
 
-    def process(self, selector: Optional[str] = None) -> ScenarioResult:
+    def process(self, selector: str | None = None) -> ScenarioResult:
         """Ingest one snapshot and resolve it end-to-end.
 
         For the demo adapter this delegates to the shared ``run_scenario`` so the

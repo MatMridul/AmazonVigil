@@ -34,7 +34,6 @@ import os
 import secrets
 import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 # PKCE (RFC 7636) — Alexa+ requires the S256 method.
 CODE_CHALLENGE_METHOD = "S256"
@@ -120,7 +119,7 @@ class AuthorizationServer:
 
     issuer: str
     resource_uri: str
-    clock: "callable" = time.monotonic
+    clock: callable = time.monotonic
     _codes: dict[str, _AuthCode] = field(default_factory=dict)
     _tokens: dict[str, _AccessToken] = field(default_factory=dict)
 
@@ -149,15 +148,15 @@ class AuthorizationServer:
             raise ValueError("resource must equal the server's canonical URI")
         code = secrets.token_urlsafe(32)
         self._codes[code] = _AuthCode(
-            code_challenge=code_challenge, resource=resource,
-            scope=scope, created=self.clock(),
+            code_challenge=code_challenge,
+            resource=resource,
+            scope=scope,
+            created=self.clock(),
         )
         return code
 
     # --- /token ------------------------------------------------------------- #
-    def exchange_code(
-        self, *, code: str, code_verifier: str, resource: str
-    ) -> dict:
+    def exchange_code(self, *, code: str, code_verifier: str, resource: str) -> dict:
         """Exchange an auth code + PKCE verifier for an access token."""
         entry = self._codes.get(code)
         if entry is None:
@@ -182,7 +181,7 @@ class AuthorizationServer:
         }
 
     # --- bearer validation (every authenticated request) -------------------- #
-    def validate_bearer(self, authorization_header: Optional[str]) -> bool:
+    def validate_bearer(self, authorization_header: str | None) -> bool:
         """True iff the Authorization header carries a valid, unexpired Bearer.
 
         Token must be in the header (never the query string), per the checklist.
@@ -222,6 +221,7 @@ _PUBLIC_PREFIXES = (
     "/healthz",
 )
 
+
 # Enforcement is ON by default. Set VIGIL_AUTH_ENFORCE=0 ONLY for local offline
 # dev/tests against the in-memory AS; a field deployment must never set it.
 def auth_enforced() -> bool:
@@ -242,7 +242,7 @@ class BearerAuthMiddleware:
     string (per the Alexa+ checklist and OWASP crypto guidance).
     """
 
-    def __init__(self, app, server: Optional[AuthorizationServer] = None) -> None:
+    def __init__(self, app, server: AuthorizationServer | None = None) -> None:
         self.app = app
         self._server = server or default_server()
 
@@ -254,21 +254,24 @@ class BearerAuthMiddleware:
         if _is_public_path(path):
             await self.app(scope, receive, send)
             return
-        headers = {k.decode("latin-1").lower(): v.decode("latin-1")
-                   for k, v in scope.get("headers", [])}
+        headers = {
+            k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])
+        }
         if self._server.validate_bearer(headers.get("authorization")):
             await self.app(scope, receive, send)
             return
         # 401 — no WWW-Authenticate header (Alexa+ lists it "not supported yet").
         body = b'{"error":"unauthorized","error_description":"valid Bearer token required"}'
-        await send({
-            "type": "http.response.start",
-            "status": 401,
-            "headers": [
-                (b"content-type", b"application/json"),
-                (b"content-length", str(len(body)).encode("ascii")),
-            ],
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 401,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(body)).encode("ascii")),
+                ],
+            }
+        )
         await send({"type": "http.response.body", "body": body})
 
 
@@ -283,14 +286,14 @@ _PIN_MAX_ATTEMPTS = 5
 _PIN_LOCKOUT_SECONDS = 300.0
 
 
-def hash_pin(pin: str, *, salt: Optional[str] = None) -> str:
+def hash_pin(pin: str, *, salt: str | None = None) -> str:
     """Hash a disarm PIN for storage. Never store the plaintext PIN.
 
     Dev-grade salted SHA-256 so the module stays dependency-free; SEC.3 swaps
     this for Argon2 (argon2-cffi) without changing callers.
     """
     s = salt or os.environ.get("VIGIL_PIN_SALT", "vigil-dev-salt")
-    return hashlib.sha256(f"{s}:{pin}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{s}:{pin}".encode()).hexdigest()
 
 
 @dataclass
@@ -305,7 +308,7 @@ class PinVerifier:
     pin_hash: str
     max_attempts: int = _PIN_MAX_ATTEMPTS
     lockout_seconds: float = _PIN_LOCKOUT_SECONDS
-    clock: "callable" = time.monotonic
+    clock: callable = time.monotonic
     _failures: int = 0
     _locked_until: float = 0.0
 

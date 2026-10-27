@@ -48,7 +48,9 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "S", "UP"]
 # S101 (assert) is fine in tests; S311 (non-crypto random) N/A — we use secrets.
-ignore = ["S101"]
+# UP042 (StrEnum) — the `class X(str, Enum)` pattern is intentional for stable
+# JSON serialization across py3.11; not a safety issue, do not churn the core enums.
+ignore = ["S101", "UP042"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
@@ -64,3 +66,8 @@ ignore_missing_imports = true
 [tool.coverage.run]
 source = ["src"]
 omit = ["src/web/static/*"]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.0",
+]

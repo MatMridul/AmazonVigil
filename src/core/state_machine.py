@@ -105,14 +105,10 @@ class ThreatSignals:
 
     def corroboration_count(self) -> int:
         """Number of independent sensor indicators present (M / V / A)."""
-        return sum(
-            (self.motion_indicator, self.visual_indicator, self.acoustic_indicator)
-        )
+        return sum((self.motion_indicator, self.visual_indicator, self.acoustic_indicator))
 
 
-def apply_zero_grace_overrides(
-    level: ThreatLevel, signals: ThreatSignals
-) -> ThreatLevel:
+def apply_zero_grace_overrides(level: ThreatLevel, signals: ThreatSignals) -> ThreatLevel:
     """Escalate on any zero-grace condition (SPEC.md §2.1).
 
     Weapon detection goes straight to L3; optical tamper / masked-near-entry /
@@ -134,9 +130,7 @@ def enforce_l3_corroboration(level: ThreatLevel, signals: ThreatSignals) -> Thre
     if level is not ThreatLevel.L3_CRITICAL:
         return level
     corroborated = (
-        signals.weapon_detected
-        or signals.distress_flag
-        or signals.corroboration_count() >= 2
+        signals.weapon_detected or signals.distress_flag or signals.corroboration_count() >= 2
     )
     return level if corroborated else ThreatLevel.L2_SUSPICIOUS
 
@@ -234,9 +228,7 @@ class StateMachine:
         self.mode = mode
         self._dwell_started_at = None
 
-    def evaluate(
-        self, score: float, signals: ThreatSignals, *, now: float
-    ) -> "Transition":
+    def evaluate(self, score: float, signals: ThreatSignals, *, now: float) -> Transition:
         """Compute the resulting threat level + action for a fresh reading.
 
         Pipeline: score band -> zero-grace override -> dwell escalation ->
@@ -250,7 +242,10 @@ class StateMachine:
         escalated = overridden
         if signals.zero_grace_fired:
             self._dwell_started_at = None
-        elif _rank(overridden) >= _rank(ThreatLevel.L1_AMBIGUOUS) and overridden is not ThreatLevel.L3_CRITICAL:
+        elif (
+            _rank(overridden) >= _rank(ThreatLevel.L1_AMBIGUOUS)
+            and overridden is not ThreatLevel.L3_CRITICAL
+        ):
             if self._dwell_started_at is None:
                 self._dwell_started_at = now
             elif (now - self._dwell_started_at) >= self.dwell_grace:
@@ -268,7 +263,9 @@ class StateMachine:
             level=gated,
             action=action,
             permitted_actuators=actuators,
-            dwell_elapsed=(None if self._dwell_started_at is None else now - self._dwell_started_at),
+            dwell_elapsed=(
+                None if self._dwell_started_at is None else now - self._dwell_started_at
+            ),
             corroborated=enforce_l3_corroboration(ThreatLevel.L3_CRITICAL, signals)
             is ThreatLevel.L3_CRITICAL,
         )

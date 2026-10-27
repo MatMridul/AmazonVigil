@@ -27,8 +27,11 @@ def test_mock_mode_default():
 def test_quiet_benign_is_safe():
     ev = BedrockThreatEvaluator(mock=True)
     out = ev.evaluate(
-        frame_webp=None, audio_transcript="", acoustic_db=20.0,
-        bio=_bio(), integrity=NOMINAL,
+        frame_webp=None,
+        audio_transcript="",
+        acoustic_db=20.0,
+        bio=_bio(),
+        integrity=NOMINAL,
     )
     assert isinstance(out, ThreatAssessment)
     assert out.threat_level == ThreatLevel.L0_SAFE
@@ -37,8 +40,11 @@ def test_quiet_benign_is_safe():
 def test_optical_tamper_escalates():
     ev = BedrockThreatEvaluator(mock=True)
     out = ev.evaluate(
-        frame_webp=None, audio_transcript="", acoustic_db=20.0,
-        bio=_bio(), integrity=TAMPERED,
+        frame_webp=None,
+        audio_transcript="",
+        acoustic_db=20.0,
+        bio=_bio(),
+        integrity=TAMPERED,
     )
     assert out.threat_level in (ThreatLevel.L2_SUSPICIOUS, ThreatLevel.L3_CRITICAL)
     assert "optical_tamper_phi_v_zero" in out.visual_findings
@@ -47,8 +53,11 @@ def test_optical_tamper_escalates():
 def test_hostile_speech_is_critical():
     ev = BedrockThreatEvaluator(mock=True)
     out = ev.evaluate(
-        frame_webp=None, audio_transcript="I have a weapon, open up",
-        acoustic_db=70.0, bio=_bio(), integrity=NOMINAL,
+        frame_webp=None,
+        audio_transcript="I have a weapon, open up",
+        acoustic_db=70.0,
+        bio=_bio(),
+        integrity=NOMINAL,
     )
     assert out.threat_level == ThreatLevel.L3_CRITICAL
 
@@ -56,8 +65,11 @@ def test_hostile_speech_is_critical():
 def test_breach_noise_is_suspicious():
     ev = BedrockThreatEvaluator(mock=True)
     out = ev.evaluate(
-        frame_webp=None, audio_transcript="metal scraping and prying at the lock",
-        acoustic_db=60.0, bio=_bio(), integrity=NOMINAL,
+        frame_webp=None,
+        audio_transcript="metal scraping and prying at the lock",
+        acoustic_db=60.0,
+        bio=_bio(),
+        integrity=NOMINAL,
     )
     assert out.threat_level == ThreatLevel.L2_SUSPICIOUS
 
@@ -89,8 +101,11 @@ def test_parse_assessment_accepts_alias():
 def test_build_prompt_includes_image_when_present():
     ev = BedrockThreatEvaluator(mock=True)
     prompt = ev.build_prompt(
-        frame_webp=b"fakewebp", audio_transcript="hi", acoustic_db=30.0,
-        bio=_bio(), integrity=NOMINAL,
+        frame_webp=b"fakewebp",
+        audio_transcript="hi",
+        acoustic_db=30.0,
+        bio=_bio(),
+        integrity=NOMINAL,
     )
     kinds = [block["type"] for block in prompt["messages"][0]["content"]]
     assert "image" in kinds and "text" in kinds

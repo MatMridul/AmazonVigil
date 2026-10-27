@@ -22,7 +22,6 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
 
 from src.core.cad_dispatcher import CadStaging, stage_cad_dispatch
 from src.core.state_machine import (
@@ -50,7 +49,7 @@ class ScenarioResult:
     action: MeshAction
     permitted_actuators: tuple[str, ...]
     cad_staged: bool
-    cad_sha256: Optional[str]
+    cad_sha256: str | None
     transition: Transition
 
     def as_dict(self) -> dict:
@@ -89,7 +88,7 @@ def _signals_from_fixture(fixture: dict) -> ThreatSignals:
     )
 
 
-def _resolve_fixture(scenario: Union[str, dict], catalog: dict[str, dict]) -> dict:
+def _resolve_fixture(scenario: str | dict, catalog: dict[str, dict]) -> dict:
     """Accept a full fixture dict, a full id, or a 2-digit prefix like '06'."""
     if isinstance(scenario, dict):
         return scenario
@@ -102,7 +101,7 @@ def _resolve_fixture(scenario: Union[str, dict], catalog: dict[str, dict]) -> di
     raise KeyError(f"unknown scenario '{scenario}' (known: {sorted(catalog)})")
 
 
-def run_scenario(scenario: Union[str, dict], *, catalog: Optional[dict] = None) -> ScenarioResult:
+def run_scenario(scenario: str | dict, *, catalog: dict | None = None) -> ScenarioResult:
     """Run one scenario end-to-end and return its deterministic result."""
     catalog = catalog if catalog is not None else load_scenarios()
     fixture = _resolve_fixture(scenario, catalog)
@@ -115,7 +114,7 @@ def run_scenario(scenario: Union[str, dict], *, catalog: Optional[dict] = None) 
     transition = sm.evaluate(score, signals, now=_EPOCH)
 
     cad_staged = False
-    cad_sha256: Optional[str] = None
+    cad_sha256: str | None = None
     if transition.action is MeshAction.DISPATCH_EMERGENCY:
         staging: CadStaging = stage_cad_dispatch(
             incident_id=fixture["id"],

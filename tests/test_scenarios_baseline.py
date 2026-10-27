@@ -46,8 +46,8 @@ def test_duress_scenario_10_is_silent_but_dispatches():
     assert r.mode == GuardMode.SILENT_DURESS
     assert r.level == ThreatLevel.L3_CRITICAL
     assert r.action == MeshAction.DISPATCH_EMERGENCY
-    assert r.permitted_actuators == ()          # complete silence
-    assert r.cad_staged is True                  # but CAD still goes out
+    assert r.permitted_actuators == ()  # complete silence
+    assert r.cad_staged is True  # but CAD still goes out
     assert r.cad_sha256 is not None and len(r.cad_sha256) == 64
 
 
@@ -55,7 +55,7 @@ def test_forced_entry_scenario_07_dispatches_with_deterrents():
     r = run_scenario("07", catalog=_CATALOG)
     assert r.level == ThreatLevel.L3_CRITICAL
     assert r.cad_staged is True
-    assert len(r.permitted_actuators) > 0        # not silent — night-sentry deterrents fire
+    assert len(r.permitted_actuators) > 0  # not silent — night-sentry deterrents fire
 
 
 def test_lens_tamper_scenario_08_escalates_via_zero_grace():

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from src.core.cad_dispatcher import (
     CANCEL_BUFFER_SECONDS,
-    CadStaging,
     build_cad_packet,
     stage_cad_dispatch,
     verify_disarm_pin,
@@ -56,9 +55,9 @@ def test_valid_four_digit_pin_format():
 
 
 def test_invalid_pin_formats_rejected():
-    assert verify_disarm_pin("123") is False       # too short
-    assert verify_disarm_pin("12345") is False      # too long
-    assert verify_disarm_pin("12a4") is False        # non-digit
+    assert verify_disarm_pin("123") is False  # too short
+    assert verify_disarm_pin("12345") is False  # too long
+    assert verify_disarm_pin("12a4") is False  # non-digit
     assert verify_disarm_pin("") is False
 
 
