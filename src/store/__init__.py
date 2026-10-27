@@ -15,6 +15,14 @@ the server tools. Values are JSON-serializable dicts; access is parameterized
 """
 
 from src.store.base import IncidentStore, InMemoryStore
+from src.store.kv_store import InMemoryKV, KeyValueStore, SqliteKV
 from src.store.sqlite_store import SqliteStore
 
-__all__ = ["IncidentStore", "InMemoryStore", "SqliteStore"]
+__all__ = [
+    "IncidentStore",
+    "InMemoryStore",
+    "SqliteStore",
+    "KeyValueStore",
+    "InMemoryKV",
+    "SqliteKV",
+]

@@ -23,7 +23,7 @@ from src.core.cad_dispatcher import build_cad_packet
 from src.core.integrity_auditor import compute_optical_integrity
 from src.core.types import IntegrityVector, PerimeterEvent, WearerBioContext
 from src.mcp_auth import default_pin_verifier
-from src.store import IncidentStore, InMemoryStore, SqliteStore
+from src.store import IncidentStore, InMemoryKV, InMemoryStore, KeyValueStore, SqliteKV, SqliteStore
 
 # Idempotency dedup window (governance rule 5).
 IDEMPOTENCY_TTL_SECONDS = 15.0
@@ -106,6 +106,20 @@ def _build_incident_store() -> IncidentStore:
 
 
 _incidents: IncidentStore = _build_incident_store()
+
+
+# Guard-profile store (Phase B.4): same durability switch as the incident store.
+_PROFILE_NS = "guard_profile"
+
+
+def _build_profile_store() -> KeyValueStore:
+    db_path = os.environ.get("VIGIL_STATE_DB", "").strip()
+    if db_path:
+        return SqliteKV(db_path)
+    return InMemoryKV()
+
+
+_profile_store: KeyValueStore = _build_profile_store()
 
 
 def _duplicate_response(token: str) -> dict:
@@ -287,13 +301,25 @@ async def explain_incident_reasoning(incident_id: str | None = None) -> dict:
 @mcp.tool()
 async def set_mesh_guard_profile(mode: str, duration_hours: int | None = None) -> dict:
     """Adjust the operational profile (Daytime Ambient | Night Sentry |
-    Vacation | Duress)."""
+    Vacation | Duress).
+
+    B.4: the active profile is persisted so it survives a restart — a security
+    posture (e.g. Vacation/Away) must not silently reset to default when the
+    process bounces.
+    """
     valid = {"daytime_ambient", "night_sentry", "vacation", "duress"}
     if mode not in valid:
         raise ValueError(f"mode must be one of {sorted(valid)}")
     if duration_hours is not None and duration_hours <= 0:
         raise ValueError("duration_hours must be positive when provided")
+    _profile_store.put(_PROFILE_NS, "active", {"mode": mode, "duration_hours": duration_hours})
+    _audit("profile.set", outcome="ok", mode=mode, duration_hours=duration_hours)
     return {"status": "profile_set", "mode": mode, "duration_hours": duration_hours}
+
+
+def active_guard_profile() -> dict | None:
+    """Return the persisted active guard profile, or None if never set (B.4)."""
+    return _profile_store.get(_PROFILE_NS, "active")
 
 
 def build_asgi_app():
